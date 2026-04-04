@@ -17,7 +17,6 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
-  DialogClose,
 } from "@/components/ui/dialog"
 import { useState } from "react"
 
@@ -99,7 +98,19 @@ function ServiceCard({ service }: { service: ServiceData }) {
 
   return (
     <>
-      <Card className="group overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all duration-300 bg-card">
+      <Card
+        className="group overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all duration-300 bg-card cursor-pointer"
+        onClick={() => setOpen(true)}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault()
+            setOpen(true)
+          }
+        }}
+        aria-label={`Ver detalles de ${service.title}`}
+      >
         <div className="relative h-56 overflow-hidden">
           <Image
             src={service.image}
@@ -128,7 +139,10 @@ function ServiceCard({ service }: { service: ServiceData }) {
         <CardFooter>
           <Button
             className="w-full rounded-full font-bold"
-            onClick={() => setOpen(true)}
+            onClick={(e) => {
+              e.stopPropagation()
+              setOpen(true)
+            }}
           >
             <Info className="size-4" />
             Mas informacion
@@ -175,11 +189,20 @@ function ServiceCard({ service }: { service: ServiceData }) {
             </div>
           </div>
           <div className="mt-4">
-            <Button className="w-full rounded-full font-bold" asChild>
-              <a href="#contacto">Reservar ahora</a>
+            <Button
+              className="w-full rounded-full font-bold"
+              asChild
+            >
+              <a
+                href="https://wa.me/18299621367?text=Hola,%20quiero%20reservar%20en%20Rancho%20Cocory"
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => setOpen(false)}
+              >
+                Reservar ahora
+              </a>
             </Button>
           </div>
-          <DialogClose className="sr-only">Cerrar</DialogClose>
         </DialogContent>
       </Dialog>
     </>

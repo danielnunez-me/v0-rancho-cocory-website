@@ -1,3 +1,8 @@
+"use client"
+
+import Image from "next/image"
+import { LegalLinks } from "@/components/legal-modals"
+
 export function Footer() {
   return (
     <footer className="bg-foreground text-background py-12 px-4">
@@ -6,9 +11,13 @@ export function Footer() {
           {/* Brand */}
           <div>
             <div className="mb-3">
-              <span className="text-xl font-extrabold tracking-tight leading-none">
-                Rancho Cocory
-              </span>
+              <Image
+                src="/images/logo.png"
+                alt="Rancho Cocory"
+                width={140}
+                height={70}
+                className="h-16 w-auto object-contain brightness-0 invert"
+              />
             </div>
             <p className="text-background/60 text-sm leading-relaxed">
               Parque recreativo familiar en Higuey, Republica Dominicana. El
@@ -68,18 +77,7 @@ export function Footer() {
             {'© 2026 Rancho Cocory. Todos los derechos reservados.'}
           </p>
           <div className="flex gap-4">
-            <a
-              href="#"
-              className="text-xs text-background/40 hover:text-background/60 transition-colors"
-            >
-              Politica de privacidad
-            </a>
-            <a
-              href="#"
-              className="text-xs text-background/40 hover:text-background/60 transition-colors"
-            >
-              Terminos y condiciones
-            </a>
+            <LegalLinks />
           </div>
         </div>
       </div>

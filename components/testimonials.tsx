@@ -1,24 +1,30 @@
-import { Star } from "lucide-react"
+"use client"
 
-const testimonials = [
-  {
-    name: "Maria G.",
-    text: "Un lugar increible para pasar el dia en familia. Los ninos disfrutaron muchisimo de las piscinas y los juegos. Definitivamente volveremos!",
-    rating: 5,
-  },
-  {
-    name: "Carlos R.",
-    text: "La excursion en buggy fue lo mejor! El recorrido por los caminos naturales es espectacular. Muy buena organizacion y atencion del personal.",
-    rating: 5,
-  },
-  {
-    name: "Ana M.",
-    text: "Excelente lugar para celebrar cumpleanos. El ambiente es tropical y muy bonito. La comida estuvo deliciosa. Se lo recomiendo a todos!",
-    rating: 4,
-  },
-]
+import { useEffect, useRef } from "react"
+import { Star } from "lucide-react"
+import { Button } from "@/components/ui/button"
 
 export function Testimonials() {
+  const scriptLoaded = useRef(false)
+
+  useEffect(() => {
+    if (scriptLoaded.current) return
+    scriptLoaded.current = true
+
+    // Load Elfsight platform script for Google Reviews widget
+    // The script may already be loaded by the Gallery component,
+    // but adding it again is safe (browser deduplicates)
+    const existing = document.querySelector(
+      'script[src="https://static.elfsight.com/platform/platform.js"]'
+    )
+    if (!existing) {
+      const script = document.createElement("script")
+      script.src = "https://static.elfsight.com/platform/platform.js"
+      script.async = true
+      document.body.appendChild(script)
+    }
+  }, [])
+
   return (
     <section className="py-20 md:py-28 px-4">
       <div className="max-w-6xl mx-auto">
@@ -44,26 +50,37 @@ export function Testimonials() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {testimonials.map((t) => (
-            <div
-              key={t.name}
-              className="bg-card rounded-2xl p-6 border border-border/50 shadow-sm hover:shadow-md transition-shadow"
+        {/* Google Reviews widget container */}
+        <div className="min-h-[200px]">
+          {/*
+            Replace the class below with your actual Elfsight Google Reviews widget class.
+            To set it up:
+            1. Go to elfsight.com and create a free account (or use your existing one)
+            2. Create a "Google Reviews" widget
+            3. Search for "Rancho Cocory" to connect your business
+            4. Customize the layout (slider or grid, show 3-6 reviews)
+            5. Copy the widget class (e.g., "elfsight-app-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx")
+            6. Replace the class in the div below
+          */}
+          <div className="elfsight-app-REPLACE-WITH-YOUR-REVIEWS-WIDGET-ID" data-elfsight-app-lazy />
+        </div>
+
+        <div className="text-center mt-8">
+          <Button
+            variant="outline"
+            size="lg"
+            className="rounded-full font-bold border-primary text-primary hover:bg-primary hover:text-primary-foreground"
+            asChild
+          >
+            <a
+              href="https://search.google.com/local/reviews?placeid=ChIJ6eHmZkhIqowRNY9WuTsX2289"
+              target="_blank"
+              rel="noopener noreferrer"
             >
-              <div className="flex gap-0.5 mb-3">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <Star
-                    key={i}
-                    className={`size-4 ${i < t.rating ? "fill-accent text-accent" : "text-border"}`}
-                  />
-                ))}
-              </div>
-              <p className="text-foreground/90 leading-relaxed mb-4 text-sm">
-                {`"${t.text}"`}
-              </p>
-              <p className="font-bold text-foreground text-sm">{t.name}</p>
-            </div>
-          ))}
+              <Star className="size-5" />
+              Ver todas las resenas en Google
+            </a>
+          </Button>
         </div>
       </div>
     </section>

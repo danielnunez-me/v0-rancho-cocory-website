@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import Image from "next/image"
 import { Menu, X, MapPin, Phone } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
@@ -22,10 +23,13 @@ export function Navbar() {
       {/* Top bar */}
       <div className="hidden md:flex items-center justify-between px-6 py-1.5 bg-primary text-primary-foreground text-sm">
         <div className="flex items-center gap-4">
-          <span className="flex items-center gap-1.5">
+          <a
+            href="https://maps.app.goo.gl/3kFM8x6hnN7P3Xrc8"
+            className="flex items-center gap-1.5 hover:underline"
+          >
             <MapPin className="size-3.5" />
             Autopista del Coral, Higuey, Rep. Dominicana
-          </span>
+          </a>
         </div>
         <a
           href="tel:+18299621367"
@@ -38,15 +42,15 @@ export function Navbar() {
 
       {/* Main nav */}
       <nav className="flex items-center justify-between px-4 md:px-8 py-3">
-        <a href="#inicio" className="flex items-center gap-2">
-          <div className="flex flex-col">
-            <span className="text-xl font-extrabold tracking-tight text-primary leading-none">
-              Rancho
-            </span>
-            <span className="text-xl font-extrabold tracking-tight text-accent leading-none">
-              Cocory
-            </span>
-          </div>
+        <a href="#inicio" className="flex items-center">
+          <Image
+            src="/images/logo.png"
+            alt="Rancho Cocory"
+            width={120}
+            height={60}
+            className="h-12 w-auto object-contain"
+            priority
+          />
         </a>
 
         {/* Desktop links */}
