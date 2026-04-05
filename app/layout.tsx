@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import { Nunito, Playfair_Display } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
+import { PageLoader } from '@/components/page-loader'
 import './globals.css'
 
 const nunito = Nunito({
@@ -51,6 +52,7 @@ export default function RootLayout({
   return (
     <html lang="es" className={`${nunito.variable} ${playfair.variable}`}>
       <body className="font-sans antialiased">
+        <PageLoader />
         {children}
         <Analytics />
       </body>
