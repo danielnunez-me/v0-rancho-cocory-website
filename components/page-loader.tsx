@@ -1,35 +1,36 @@
 "use client"
 
-import { useState, useEffect, useCallback, useRef } from "react"
+import { useState, useEffect, useCallback } from "react"
 
-const SESSION_KEY = "pageloader_shown"
+const loadingTexts = [
+  "Initializing experience...",
+  "Loading intelligent systems...",
+  "Preparing interface...",
+  "Almost ready...",
+]
 
 export function PageLoader() {
-  const [isVisible, setIsVisible] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
   const [isRevealing, setIsRevealing] = useState(false)
+  const [textIndex, setTextIndex] = useState(0)
   const [progress, setProgress] = useState(0)
-  const [videoLoaded, setVideoLoaded] = useState(false)
-  const videoRef = useRef<HTMLVideoElement>(null)
-  const hasInitialized = useRef(false)
+  const [isVisible, setIsVisible] = useState(true)
+  const [videoFailed, setVideoFailed] = useState(false)
 
-  // Check if this is the first page load
+  // Cycle through loading texts
   useEffect(() => {
-    if (hasInitialized.current) return
-    hasInitialized.current = true
+    if (!isLoading) return
 
-    // Only show loader on first visit per session
-    if (typeof window !== "undefined") {
-      const hasShown = sessionStorage.getItem(SESSION_KEY)
-      if (!hasShown) {
-        setIsVisible(true)
-        sessionStorage.setItem(SESSION_KEY, "true")
-      }
-    }
-  }, [])
+    const textInterval = setInterval(() => {
+      setTextIndex((prev) => (prev + 1) % loadingTexts.length)
+    }, 2000)
+
+    return () => clearInterval(textInterval)
+  }, [isLoading])
 
   // Simulate progress bar
   useEffect(() => {
-    if (!isVisible || isRevealing) return
+    if (!isLoading) return
 
     const progressInterval = setInterval(() => {
       setProgress((prev) => {
@@ -40,7 +41,7 @@ export function PageLoader() {
     }, 300)
 
     return () => clearInterval(progressInterval)
-  }, [isVisible, isRevealing])
+  }, [isLoading])
 
   // Handle page load completion
   const completeLoading = useCallback(() => {
@@ -49,21 +50,21 @@ export function PageLoader() {
       setIsRevealing(true)
       setTimeout(() => {
         setIsVisible(false)
-      }, 1000)
+      }, 1200)
     }, 300)
   }, [])
 
   useEffect(() => {
-    if (!isVisible) return
-
     // Check if page is already loaded
     if (document.readyState === "complete") {
-      const minLoadTime = setTimeout(completeLoading, 2000)
+      // Still show loader for minimum time for UX
+      const minLoadTime = setTimeout(completeLoading, 2500)
       return () => clearTimeout(minLoadTime)
     }
 
     // Wait for page to fully load
     const handleLoad = () => {
+      // Minimum display time for smooth UX
       setTimeout(completeLoading, 1500)
     }
 
@@ -76,17 +77,14 @@ export function PageLoader() {
       window.removeEventListener("load", handleLoad)
       clearTimeout(fallbackTimeout)
     }
-  }, [isVisible, completeLoading])
+  }, [completeLoading])
 
-  // Handle video load error - immediately hide loader
-  const handleVideoError = useCallback(() => {
-    setIsVisible(false)
-  }, [])
-
-  // Handle video loaded
-  const handleVideoLoaded = useCallback(() => {
-    setVideoLoaded(true)
-  }, [])
+  // Mark loading as complete when revealing starts
+  useEffect(() => {
+    if (isRevealing) {
+      setIsLoading(false)
+    }
+  }, [isRevealing])
 
   if (!isVisible) return null
 
@@ -104,107 +102,205 @@ export function PageLoader() {
 
       {/* Loader overlay with brush reveal */}
       <div
-        className={`fixed inset-0 z-[9999] flex flex-col items-center justify-center ${
+        className={`fixed inset-0 z-[9999] flex flex-col items-center justify-center transition-all duration-1000 ${
           isRevealing ? "loader-reveal" : ""
         }`}
+        style={{
+          backgroundColor: "#0b0b0b",
+        }}
       >
-        {/* Fullscreen video background */}
-        <video
-          ref={videoRef}
-          autoPlay
-          muted
-          loop
-          playsInline
-          className="absolute inset-0 w-full h-full object-cover"
-          onLoadedData={handleVideoLoaded}
-          onError={handleVideoError}
-        >
-          <source src="/loader-video.webm" type="video/webm" />
-          <source src="/loader-video.mp4" type="video/mp4" />
-        </video>
-
-        {/* Dark gradient overlay */}
+        {/* Loader container */}
         <div
-          className="absolute inset-0"
-          style={{
-            background:
-              "linear-gradient(to bottom, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0.4) 50%, rgba(0, 0, 0, 0.7) 100%)",
-          }}
-        />
-
-        {/* Glass UI container */}
-        <div
-          className={`relative z-10 flex flex-col items-center px-12 py-10 rounded-2xl transition-all duration-500 ${
-            isRevealing ? "opacity-0 scale-95 translate-y-4" : "opacity-100 scale-100 translate-y-0"
+          className={`relative mb-8 transition-all duration-500 ${
+            isRevealing ? "opacity-0 scale-95" : "opacity-100 scale-100"
           }`}
-          style={{
-            background: "rgba(0, 0, 0, 0.4)",
-            backdropFilter: "blur(20px)",
-            WebkitBackdropFilter: "blur(20px)",
-            border: "1px solid rgba(255, 255, 255, 0.1)",
-            boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.5)",
-          }}
         >
-          {/* Loading text */}
-          <p className="text-white/90 text-sm tracking-[0.3em] uppercase font-light mb-6">
-            INITIALIZING EXPERIENCE...
-          </p>
+          {/* Glow effect */}
+          <div
+            className="absolute inset-0 rounded-2xl blur-3xl opacity-40"
+            style={{
+              background:
+                "radial-gradient(ellipse at center, rgba(41, 170, 227, 0.5), rgba(41, 170, 227, 0.1), transparent)",
+              transform: "scale(1.5)",
+            }}
+          />
 
-          {/* Progress bar */}
-          <div className="w-64 h-[2px] bg-white/10 rounded-full overflow-hidden">
-            <div
-              className="h-full rounded-full transition-all duration-300 ease-out"
+          {/* Video element or fallback */}
+          {!videoFailed ? (
+            <video
+              autoPlay
+              muted
+              loop
+              playsInline
+              className="relative z-10 h-[240px] w-auto object-contain rounded-xl"
               style={{
-                width: `${progress}%`,
-                background: "linear-gradient(90deg, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.9))",
-                boxShadow: "0 0 20px rgba(255, 255, 255, 0.3)",
+                filter: "drop-shadow(0 0 40px rgba(41, 170, 227, 0.3))",
               }}
-            />
+              onError={() => setVideoFailed(true)}
+            >
+              <source src="/loader-video.webm" type="video/webm" />
+              <source src="/loader-video.mp4" type="video/mp4" />
+            </video>
+          ) : null}
+
+          {/* Fallback animated loader - always visible until video loads */}
+          <div 
+            className={`relative z-10 h-[240px] w-[240px] flex items-center justify-center ${!videoFailed ? 'absolute inset-0' : ''}`}
+            style={{
+              filter: "drop-shadow(0 0 40px rgba(41, 170, 227, 0.3))",
+            }}
+          >
+            {/* Orbital rings loader */}
+            <div className="orbital-loader">
+              <div className="orbital-ring orbital-ring-1" />
+              <div className="orbital-ring orbital-ring-2" />
+              <div className="orbital-ring orbital-ring-3" />
+              <div className="orbital-core" />
+            </div>
           </div>
         </div>
+
+        {/* Loading text with fade animation */}
+        <div
+          className={`h-8 mb-6 transition-all duration-500 ${
+            isRevealing ? "opacity-0 translate-y-4" : "opacity-100 translate-y-0"
+          }`}
+        >
+          <p
+            key={textIndex}
+            className="text-white/80 text-sm tracking-wider uppercase font-light animate-fade-in-text"
+          >
+            {loadingTexts[textIndex]}
+          </p>
+        </div>
+
+        {/* Progress bar */}
+        <div
+          className={`w-48 h-[2px] bg-white/10 rounded-full overflow-hidden transition-all duration-500 ${
+            isRevealing ? "opacity-0 translate-y-4" : "opacity-100 translate-y-0"
+          }`}
+        >
+          <div
+            className="h-full rounded-full transition-all duration-300 ease-out"
+            style={{
+              width: `${progress}%`,
+              background: "linear-gradient(90deg, rgba(41, 170, 227, 0.5), rgba(41, 170, 227, 1))",
+              boxShadow: "0 0 20px rgba(41, 170, 227, 0.5)",
+            }}
+          />
+        </div>
+
+        {/* Brush reveal mask overlay */}
+        <div
+          className={`absolute inset-0 pointer-events-none ${isRevealing ? "brush-reveal-active" : ""}`}
+          style={{
+            background: "#0b0b0b",
+            clipPath: isRevealing
+              ? "circle(150% at 50% 50%)"
+              : "circle(0% at 50% 50%)",
+            transition: "clip-path 1.2s cubic-bezier(0.4, 0, 0.2, 1)",
+          }}
+        />
       </div>
 
       {/* Styles */}
       <style jsx>{`
-        .loader-reveal {
-          animation: brushDissolve 1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-        }
-
-        @keyframes brushDissolve {
+        @keyframes fadeInText {
           0% {
-            clip-path: polygon(
-              0% 0%, 100% 0%, 100% 100%, 0% 100%
-            );
-            opacity: 1;
-          }
-          20% {
-            clip-path: polygon(
-              5% 0%, 100% 0%, 100% 100%, 0% 100%,
-              0% 85%, 8% 70%, 3% 50%, 10% 30%, 5% 15%
-            );
-          }
-          40% {
-            clip-path: polygon(
-              20% 0%, 100% 0%, 100% 100%, 15% 100%,
-              10% 80%, 25% 60%, 15% 40%, 30% 20%, 20% 5%
-            );
-          }
-          60% {
-            clip-path: polygon(
-              45% 0%, 100% 0%, 100% 100%, 40% 100%,
-              35% 75%, 50% 55%, 40% 35%, 55% 15%, 45% 0%
-            );
-          }
-          80% {
-            clip-path: polygon(
-              70% 0%, 100% 0%, 100% 100%, 65% 100%,
-              60% 70%, 75% 50%, 65% 30%, 80% 10%, 70% 0%
-            );
+            opacity: 0;
+            transform: translateY(10px);
           }
           100% {
-            clip-path: polygon(
-              100% 0%, 100% 0%, 100% 100%, 100% 100%
-            );
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        .animate-fade-in-text {
+          animation: fadeInText 0.5s ease-out forwards;
+        }
+
+        .loader-reveal {
+          clip-path: circle(0% at 50% 50%);
+          transition: clip-path 1.2s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        .orbital-loader {
+          position: relative;
+          width: 120px;
+          height: 120px;
+        }
+
+        .orbital-ring {
+          position: absolute;
+          inset: 0;
+          border-radius: 50%;
+          border: 2px solid transparent;
+        }
+
+        .orbital-ring-1 {
+          border-top-color: rgba(41, 170, 227, 1);
+          border-right-color: rgba(41, 170, 227, 0.3);
+          animation: orbit 2s cubic-bezier(0.68, -0.55, 0.27, 1.55) infinite;
+        }
+
+        .orbital-ring-2 {
+          inset: 15px;
+          border-bottom-color: rgba(41, 170, 227, 0.8);
+          border-left-color: rgba(41, 170, 227, 0.2);
+          animation: orbit 1.5s cubic-bezier(0.68, -0.55, 0.27, 1.55) infinite reverse;
+        }
+
+        .orbital-ring-3 {
+          inset: 30px;
+          border-top-color: rgba(41, 170, 227, 0.6);
+          border-right-color: rgba(41, 170, 227, 0.1);
+          animation: orbit 2.5s cubic-bezier(0.68, -0.55, 0.27, 1.55) infinite;
+        }
+
+        .orbital-core {
+          position: absolute;
+          inset: 45px;
+          border-radius: 50%;
+          background: radial-gradient(circle, rgba(41, 170, 227, 0.8), rgba(41, 170, 227, 0.2));
+          animation: pulse 1.5s ease-in-out infinite;
+          box-shadow: 0 0 30px rgba(41, 170, 227, 0.5);
+        }
+
+        @keyframes orbit {
+          0% {
+            transform: rotate(0deg);
+          }
+          100% {
+            transform: rotate(360deg);
+          }
+        }
+
+        @keyframes pulse {
+          0%, 100% {
+            transform: scale(1);
+            opacity: 0.8;
+          }
+          50% {
+            transform: scale(1.1);
+            opacity: 1;
+          }
+        }
+
+        .brush-reveal-active {
+          animation: brushReveal 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+
+        @keyframes brushReveal {
+          0% {
+            clip-path: inset(0 0 0 0);
+            opacity: 1;
+          }
+          50% {
+            clip-path: inset(0 0 0 50%);
+          }
+          100% {
+            clip-path: inset(0 0 0 100%);
             opacity: 0;
           }
         }
