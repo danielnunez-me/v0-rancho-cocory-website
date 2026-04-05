@@ -9,6 +9,8 @@ export function PageLoader() {
   const [isVisible, setIsVisible] = useState(true)
   const [shouldRender, setShouldRender] = useState(false)
   const [showSlowMessage, setShowSlowMessage] = useState(false)
+  const [videoLoaded, setVideoLoaded] = useState(false)
+  const [showSlowVideoText, setShowSlowVideoText] = useState(false)
   const videoRef = useRef<HTMLVideoElement>(null)
   const hasCheckedSession = useRef(false)
 
@@ -24,6 +26,24 @@ export function PageLoader() {
     } else {
       setShouldRender(true)
     }
+  }, [])
+
+  // Show text only if video takes >3 seconds to load
+  useEffect(() => {
+    if (!shouldRender || videoLoaded) return
+
+    const slowVideoTimeout = setTimeout(() => {
+      if (!videoLoaded) {
+        setShowSlowVideoText(true)
+      }
+    }, 3000)
+
+    return () => clearTimeout(slowVideoTimeout)
+  }, [shouldRender, videoLoaded])
+
+  // Handle video loaded
+  const handleVideoLoaded = useCallback(() => {
+    setVideoLoaded(true)
   }, [])
 
   // Simulate progress bar
@@ -136,6 +156,8 @@ export function PageLoader() {
           loop
           playsInline
           className="fixed inset-0 w-screen h-screen object-cover"
+          onCanPlay={handleVideoLoaded}
+          onLoadedData={handleVideoLoaded}
           onError={handleVideoError}
         >
           <source src="/loader-video.webm" type="video/webm" />
@@ -151,24 +173,26 @@ export function PageLoader() {
             isRevealing ? "opacity-0 scale-95" : "opacity-100 scale-100"
           }`}
         >
-          {/* Loading text */}
-          {!showSlowMessage ? (
-            <p className="text-white/90 text-sm tracking-[0.25em] uppercase font-light mb-6 text-center">
-              INITIALIZING RANCHO COCORY EXPERIENCE...
-            </p>
-          ) : (
-            <div className="text-center mb-6">
-              <p className="text-white/90 text-sm tracking-[0.2em] uppercase font-light mb-2">
-                Preparing the RANCHO COCORY environment...
+          {/* Loading text - only shown if video takes >3s to load or for slow page loads */}
+          {showSlowVideoText && (
+            !showSlowMessage ? (
+              <p className="text-white/90 text-sm tracking-[0.25em] uppercase font-light mb-6 text-center">
+                INITIALIZING RANCHO COCORY EXPERIENCE...
               </p>
-              <p className="text-white/60 text-xs tracking-wide">
-                This experience may take a little longer on your device.
-              </p>
-            </div>
+            ) : (
+              <div className="text-center mb-6">
+                <p className="text-white/90 text-sm tracking-[0.2em] uppercase font-light mb-2">
+                  Preparing the RANCHO COCORY environment...
+                </p>
+                <p className="text-white/60 text-xs tracking-wide">
+                  This experience may take a little longer on your device.
+                </p>
+              </div>
+            )
           )}
 
           {/* Progress bar */}
-          <div className="w-56 h-[2px] bg-white/10 rounded-full overflow-hidden">
+          <div className={`w-56 h-[2px] bg-white/10 rounded-full overflow-hidden ${showSlowVideoText ? '' : 'mt-0'}`}>
             <div
               className="h-full rounded-full transition-all duration-300 ease-out"
               style={{
