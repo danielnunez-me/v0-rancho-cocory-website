@@ -11,6 +11,8 @@ export function PageLoader() {
   const [showSlowMessage, setShowSlowMessage] = useState(false)
   const [videoLoaded, setVideoLoaded] = useState(false)
   const [showSlowVideoText, setShowSlowVideoText] = useState(false)
+  const [minDurationMet, setMinDurationMet] = useState(false)
+  const [pageLoaded, setPageLoaded] = useState(false)
   const videoRef = useRef<HTMLVideoElement>(null)
   const hasCheckedSession = useRef(false)
 
@@ -46,17 +48,18 @@ export function PageLoader() {
     setVideoLoaded(true)
   }, [])
 
-  // Simulate progress bar
+  // Progress bar synced to 20-second duration
   useEffect(() => {
     if (!isLoading || !shouldRender) return
 
+    const startTime = Date.now()
+    const duration = 20000 // 20 seconds
+
     const progressInterval = setInterval(() => {
-      setProgress((prev) => {
-        if (prev >= 90) return prev
-        const increment = Math.random() * 5 + 1
-        return Math.min(prev + increment, 90)
-      })
-    }, 400)
+      const elapsed = Date.now() - startTime
+      const newProgress = Math.min((elapsed / duration) * 100, 100)
+      setProgress(newProgress)
+    }, 100)
 
     return () => clearInterval(progressInterval)
   }, [isLoading, shouldRender])
@@ -84,64 +87,56 @@ export function PageLoader() {
     setShouldRender(false)
   }, [])
 
-  // Main loading logic
+  // 20-second minimum duration timer
   useEffect(() => {
     if (!shouldRender) return
 
-    let loadTimeout: NodeJS.Timeout
-    let slowLoadTimeout: NodeJS.Timeout
+    const minDurationTimer = setTimeout(() => {
+      setMinDurationMet(true)
+    }, 20000)
 
-    const triggerComplete = () => {
-      clearTimeout(loadTimeout)
-      clearTimeout(slowLoadTimeout)
+    return () => clearTimeout(minDurationTimer)
+  }, [shouldRender])
+
+  // Track page load state
+  useEffect(() => {
+    if (!shouldRender) return
+
+    if (document.readyState === "complete") {
+      setPageLoaded(true)
+    } else {
+      const handleLoad = () => setPageLoaded(true)
+      window.addEventListener("load", handleLoad)
+      return () => window.removeEventListener("load", handleLoad)
+    }
+  }, [shouldRender])
+
+  // Complete loading only when BOTH conditions are met: page loaded AND 20s elapsed
+  useEffect(() => {
+    if (!shouldRender) return
+
+    if (minDurationMet && pageLoaded) {
       completeLoading()
     }
+  }, [minDurationMet, pageLoaded, shouldRender, completeLoading])
 
-    // If page already loaded, wait minimum time for cinematic effect
-    if (document.readyState === "complete") {
-      loadTimeout = setTimeout(triggerComplete, 3000)
-    } else {
-      // Wait for page to fully load
-      const handleLoad = () => {
-        loadTimeout = setTimeout(triggerComplete, 2000)
-      }
-      window.addEventListener("load", handleLoad)
-      
-      // Cleanup listener
-      return () => {
-        window.removeEventListener("load", handleLoad)
-        clearTimeout(loadTimeout)
-        clearTimeout(slowLoadTimeout)
-      }
-    }
+  // 60 second fallback for extremely slow loads
+  useEffect(() => {
+    if (!shouldRender) return
 
-    // 60 second fallback for slow loads
-    slowLoadTimeout = setTimeout(() => {
+    const slowLoadTimeout = setTimeout(() => {
       setShowSlowMessage(true)
-      // Auto-continue after showing message
-      setTimeout(triggerComplete, 3000)
+      // Force complete after showing message
+      setTimeout(completeLoading, 3000)
     }, 60000)
 
-    return () => {
-      clearTimeout(loadTimeout)
-      clearTimeout(slowLoadTimeout)
-    }
-  }, [completeLoading, shouldRender])
+    return () => clearTimeout(slowLoadTimeout)
+  }, [shouldRender, completeLoading])
 
   if (!isVisible || !shouldRender) return null
 
   return (
     <>
-      {/* Main content blur-to-sharp transition overlay */}
-      <div
-        className={`fixed inset-0 z-[9998] pointer-events-none transition-all duration-700 ${
-          isRevealing ? "backdrop-blur-0 opacity-0" : "backdrop-blur-md opacity-100"
-        }`}
-        style={{
-          transitionTimingFunction: "cubic-bezier(0.4, 0, 0.2, 1)",
-        }}
-      />
-
       {/* Loader overlay with brush reveal */}
       <div
         className={`fixed inset-0 z-[9999] flex items-center justify-center ${
@@ -164,45 +159,41 @@ export function PageLoader() {
           <source src="/loader-video.mp4" type="video/mp4" />
         </video>
 
-        {/* Dark gradient overlay for readability */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/70" />
+        {/* Thin progress bar at the very top */}
+        <div className="fixed top-0 left-0 w-full h-[3px] bg-black/30 z-20">
+          <div
+            className="h-full transition-all duration-100 ease-linear"
+            style={{
+              width: `${progress}%`,
+              background: "linear-gradient(90deg, rgba(41, 170, 227, 0.6), rgba(41, 170, 227, 1))",
+              boxShadow: "0 0 10px rgba(41, 170, 227, 0.5)",
+            }}
+          />
+        </div>
 
-        {/* Centered glass UI container */}
-        <div
-          className={`relative z-10 flex flex-col items-center bg-black/30 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl p-8 transition-all duration-500 ${
-            isRevealing ? "opacity-0 scale-95" : "opacity-100 scale-100"
-          }`}
-        >
-          {/* Loading text - only shown if video takes >3s to load or for slow page loads */}
-          {showSlowVideoText && (
-            !showSlowMessage ? (
-              <p className="text-white/90 text-sm tracking-[0.25em] uppercase font-light mb-6 text-center">
+        {/* Loading text - only shown if video takes >3s to load */}
+        {showSlowVideoText && (
+          <div
+            className={`absolute bottom-12 left-1/2 -translate-x-1/2 z-10 text-center transition-all duration-500 ${
+              isRevealing ? "opacity-0" : "opacity-100"
+            }`}
+          >
+            {!showSlowMessage ? (
+              <p className="text-white/90 text-sm tracking-[0.25em] uppercase font-light drop-shadow-lg">
                 INITIALIZING RANCHO COCORY EXPERIENCE...
               </p>
             ) : (
-              <div className="text-center mb-6">
-                <p className="text-white/90 text-sm tracking-[0.2em] uppercase font-light mb-2">
+              <div>
+                <p className="text-white/90 text-sm tracking-[0.2em] uppercase font-light mb-2 drop-shadow-lg">
                   Preparing the RANCHO COCORY environment...
                 </p>
-                <p className="text-white/60 text-xs tracking-wide">
+                <p className="text-white/60 text-xs tracking-wide drop-shadow-lg">
                   This experience may take a little longer on your device.
                 </p>
               </div>
-            )
-          )}
-
-          {/* Progress bar */}
-          <div className={`w-56 h-[2px] bg-white/10 rounded-full overflow-hidden ${showSlowVideoText ? '' : 'mt-0'}`}>
-            <div
-              className="h-full rounded-full transition-all duration-300 ease-out"
-              style={{
-                width: `${progress}%`,
-                background: "linear-gradient(90deg, rgba(41, 170, 227, 0.5), rgba(41, 170, 227, 1))",
-                boxShadow: "0 0 15px rgba(41, 170, 227, 0.5)",
-              }}
-            />
+            )}
           </div>
-        </div>
+        )}
       </div>
 
       {/* Brush dissolve animation styles */}
