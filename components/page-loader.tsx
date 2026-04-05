@@ -8,17 +8,17 @@ export function PageLoader() {
   const [progress, setProgress] = useState(0)
   const [isVisible, setIsVisible] = useState(true)
   const [shouldRender, setShouldRender] = useState(false)
+  const [showSlowMessage, setShowSlowMessage] = useState(false)
   const videoRef = useRef<HTMLVideoElement>(null)
   const hasCheckedSession = useRef(false)
 
-  // Check if this is the first page load (only run loader once per session)
+  // Check sessionStorage - only run loader once per session
   useEffect(() => {
     if (hasCheckedSession.current) return
     hasCheckedSession.current = true
 
-    const hasLoaded = sessionStorage.getItem("pageLoaderShown")
+    const hasLoaded = sessionStorage.getItem("ranchoCocoryLoaderShown")
     if (hasLoaded) {
-      // Already shown this session, skip loader entirely
       setIsVisible(false)
       setShouldRender(false)
     } else {
@@ -33,72 +33,89 @@ export function PageLoader() {
     const progressInterval = setInterval(() => {
       setProgress((prev) => {
         if (prev >= 90) return prev
-        const increment = Math.random() * 8 + 2
+        const increment = Math.random() * 5 + 1
         return Math.min(prev + increment, 90)
       })
-    }, 300)
+    }, 400)
 
     return () => clearInterval(progressInterval)
   }, [isLoading, shouldRender])
 
-  // Handle page load completion
+  // Complete loading and trigger exit transition
   const completeLoading = useCallback(() => {
     setProgress(100)
-    sessionStorage.setItem("pageLoaderShown", "true")
+    sessionStorage.setItem("ranchoCocoryLoaderShown", "true")
+    
     setTimeout(() => {
       setIsRevealing(true)
+      setIsLoading(false)
+      
+      // Remove from DOM after brush dissolve completes
       setTimeout(() => {
         setIsVisible(false)
-      }, 1000)
+      }, 1200)
     }, 300)
   }, [])
 
   // Handle video error - immediately show content
   const handleVideoError = useCallback(() => {
-    sessionStorage.setItem("pageLoaderShown", "true")
+    sessionStorage.setItem("ranchoCocoryLoaderShown", "true")
     setIsVisible(false)
+    setShouldRender(false)
   }, [])
 
+  // Main loading logic
   useEffect(() => {
     if (!shouldRender) return
 
-    // Check if page is already loaded
+    let loadTimeout: NodeJS.Timeout
+    let slowLoadTimeout: NodeJS.Timeout
+
+    const triggerComplete = () => {
+      clearTimeout(loadTimeout)
+      clearTimeout(slowLoadTimeout)
+      completeLoading()
+    }
+
+    // If page already loaded, wait minimum time for cinematic effect
     if (document.readyState === "complete") {
-      const minLoadTime = setTimeout(completeLoading, 2500)
-      return () => clearTimeout(minLoadTime)
+      loadTimeout = setTimeout(triggerComplete, 3000)
+    } else {
+      // Wait for page to fully load
+      const handleLoad = () => {
+        loadTimeout = setTimeout(triggerComplete, 2000)
+      }
+      window.addEventListener("load", handleLoad)
+      
+      // Cleanup listener
+      return () => {
+        window.removeEventListener("load", handleLoad)
+        clearTimeout(loadTimeout)
+        clearTimeout(slowLoadTimeout)
+      }
     }
 
-    // Wait for page to fully load
-    const handleLoad = () => {
-      setTimeout(completeLoading, 1500)
-    }
-
-    window.addEventListener("load", handleLoad)
-
-    // Fallback timeout
-    const fallbackTimeout = setTimeout(completeLoading, 5000)
+    // 60 second fallback for slow loads
+    slowLoadTimeout = setTimeout(() => {
+      setShowSlowMessage(true)
+      // Auto-continue after showing message
+      setTimeout(triggerComplete, 3000)
+    }, 60000)
 
     return () => {
-      window.removeEventListener("load", handleLoad)
-      clearTimeout(fallbackTimeout)
+      clearTimeout(loadTimeout)
+      clearTimeout(slowLoadTimeout)
     }
   }, [completeLoading, shouldRender])
-
-  // Mark loading as complete when revealing starts
-  useEffect(() => {
-    if (isRevealing) {
-      setIsLoading(false)
-    }
-  }, [isRevealing])
 
   if (!isVisible || !shouldRender) return null
 
   return (
     <>
-      {/* Main content blur overlay */}
+      {/* Main content blur-to-sharp transition overlay */}
       <div
         className={`fixed inset-0 z-[9998] pointer-events-none transition-all duration-700 ${
-          isRevealing ? "backdrop-blur-0 opacity-0" : "backdrop-blur-sm opacity-100"
+          isRevealing ? "backdrop-blur-0 opacity-0" : "backdrop-blur-md opacity-100"
         }`}
         style={{
           transitionTimingFunction: "cubic-bezier(0.4, 0, 0.2, 1)",
@@ -107,8 +124,8 @@ export function PageLoader() {
 
       {/* Loader overlay with brush reveal */}
       <div
-        className={`fixed inset-0 z-[9999] flex flex-col items-center justify-center transition-all duration-1000 ${
-          isRevealing ? "loader-reveal" : ""
+        className={`fixed inset-0 z-[9999] flex items-center justify-center ${
+          isRevealing ? "loader-brush-reveal" : ""
         }`}
       >
         {/* Fullscreen video background */}
@@ -118,7 +135,7 @@ export function PageLoader() {
           muted
           loop
           playsInline
-          className="absolute inset-0 w-full h-full object-cover"
+          className="fixed inset-0 w-screen h-screen object-cover"
           onError={handleVideoError}
         >
           <source src="/loader-video.webm" type="video/webm" />
@@ -126,84 +143,83 @@ export function PageLoader() {
         </video>
 
         {/* Dark gradient overlay for readability */}
-        <div 
-          className="absolute inset-0"
-          style={{
-            background: "linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0.7) 100%)",
-          }}
-        />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/70" />
 
         {/* Centered glass UI container */}
         <div
-          className={`relative z-10 flex flex-col items-center px-12 py-10 rounded-2xl transition-all duration-500 ${
+          className={`relative z-10 flex flex-col items-center bg-black/30 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl p-8 transition-all duration-500 ${
             isRevealing ? "opacity-0 scale-95" : "opacity-100 scale-100"
           }`}
-          style={{
-            background: "rgba(0, 0, 0, 0.4)",
-            backdropFilter: "blur(20px)",
-            WebkitBackdropFilter: "blur(20px)",
-            border: "1px solid rgba(255, 255, 255, 0.1)",
-          }}
         >
           {/* Loading text */}
-          <p
-            className="text-white/90 text-sm tracking-[0.3em] uppercase font-light mb-6"
-            style={{
-              textShadow: "0 0 20px rgba(41, 170, 227, 0.3)",
-            }}
-          >
-            INITIALIZING EXPERIENCE...
-          </p>
+          {!showSlowMessage ? (
+            <p className="text-white/90 text-sm tracking-[0.25em] uppercase font-light mb-6 text-center">
+              INITIALIZING RANCHO COCORY EXPERIENCE...
+            </p>
+          ) : (
+            <div className="text-center mb-6">
+              <p className="text-white/90 text-sm tracking-[0.2em] uppercase font-light mb-2">
+                Preparing the RANCHO COCORY environment...
+              </p>
+              <p className="text-white/60 text-xs tracking-wide">
+                This experience may take a little longer on your device.
+              </p>
+            </div>
+          )}
 
           {/* Progress bar */}
-          <div className="w-48 h-[2px] bg-white/10 rounded-full overflow-hidden">
+          <div className="w-56 h-[2px] bg-white/10 rounded-full overflow-hidden">
             <div
               className="h-full rounded-full transition-all duration-300 ease-out"
               style={{
                 width: `${progress}%`,
                 background: "linear-gradient(90deg, rgba(41, 170, 227, 0.5), rgba(41, 170, 227, 1))",
-                boxShadow: "0 0 20px rgba(41, 170, 227, 0.5)",
+                boxShadow: "0 0 15px rgba(41, 170, 227, 0.5)",
               }}
             />
           </div>
         </div>
       </div>
 
-      {/* Styles */}
+      {/* Brush dissolve animation styles */}
       <style jsx>{`
-        .loader-reveal {
-          animation: brushDissolve 1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        .loader-brush-reveal {
+          animation: brushDissolve 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
         }
 
         @keyframes brushDissolve {
           0% {
-            clip-path: polygon(
-              0% 0%, 100% 0%, 100% 100%, 0% 100%
-            );
+            clip-path: inset(0 0 0 0);
             opacity: 1;
           }
-          20% {
+          15% {
             clip-path: polygon(
-              5% 0%, 100% 0%, 100% 100%, 0% 100%,
-              0% 85%, 3% 70%, 0% 55%, 2% 40%, 0% 25%, 4% 10%
+              0% 0%, 100% 0%, 100% 100%, 0% 100%,
+              0% 90%, 8% 75%, 3% 60%, 10% 45%, 5% 30%, 12% 15%, 6% 0%
             );
           }
-          40% {
+          30% {
             clip-path: polygon(
-              20% 0%, 100% 0%, 100% 100%, 15% 100%,
-              10% 80%, 18% 60%, 12% 40%, 22% 20%, 15% 0%
+              15% 0%, 100% 0%, 100% 100%, 20% 100%,
+              15% 85%, 25% 65%, 18% 45%, 28% 25%, 20% 5%
             );
           }
-          60% {
+          50% {
             clip-path: polygon(
-              45% 0%, 100% 0%, 100% 100%, 40% 100%,
-              35% 75%, 48% 50%, 38% 25%, 50% 0%
+              40% 0%, 100% 0%, 100% 100%, 35% 100%,
+              30% 80%, 45% 55%, 35% 30%, 48% 5%
             );
           }
-          80% {
+          70% {
             clip-path: polygon(
-              75% 0%, 100% 0%, 100% 100%, 70% 100%,
-              65% 70%, 78% 40%, 68% 10%
+              65% 0%, 100% 0%, 100% 100%, 60% 100%,
+              55% 75%, 70% 45%, 58% 15%
+            );
+          }
+          85% {
+            clip-path: polygon(
+              85% 0%, 100% 0%, 100% 100%, 80% 100%,
+              75% 60%, 88% 25%
             );
           }
           100% {
