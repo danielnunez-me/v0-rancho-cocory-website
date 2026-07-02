@@ -42,8 +42,8 @@ export function PageLoader() {
     const tick = (now: number) => {
       if (hasCompleted.current) return
       const elapsed = now - startTime
-      // Curva asintótica: avanza rápido al inicio y se aproxima a 90% mientras carga
-      const simulated = 90 * (1 - Math.exp(-elapsed / 1200))
+      // Curva asintótica 50% más lenta: da tiempo de apreciar el logo sin bloquear la app
+      const simulated = 90 * (1 - Math.exp(-elapsed / 1800))
       setProgress((prev) => Math.max(prev, Math.min(simulated, 90)))
       rafId = requestAnimationFrame(tick)
     }
@@ -69,38 +69,37 @@ export function PageLoader() {
     <div
       role="status"
       aria-live="polite"
-      className={`fixed inset-0 z-[9999] flex items-center justify-center bg-[#0b0b0b] transition-opacity ease-out ${exitDurationClass} ${
+      className={`fixed inset-0 z-[9999] flex items-center justify-center bg-white transition-opacity ease-out ${exitDurationClass} ${
         isExiting ? "opacity-0 pointer-events-none" : "opacity-100"
       }`}
     >
       {/* Contenedor responsivo: el video ya no ocupa toda la pantalla */}
-      <div className="flex w-full max-w-sm sm:max-w-md md:max-w-lg flex-col items-center gap-6 px-6">
-        {/* Video del loader: intacto y 100% responsive */}
+      <div className="flex w-full max-w-sm sm:max-w-md md:max-w-lg flex-col items-center gap-5 px-6">
+        {/* Video del loader: intacto y 100% responsive, fusionado con el fondo blanco */}
         <video
           autoPlay
           muted
           loop
           playsInline
-          className="w-full h-auto rounded-xl object-contain"
-          style={{
-            filter: "drop-shadow(0 0 40px rgba(41, 170, 227, 0.3))",
-          }}
+          className="w-full h-auto object-contain"
           onError={completeLoading}
         >
           <source src="/loader-video.webm" type="video/webm" />
         </video>
 
-        {/* Barra de carga más gruesa (h-2 en móvil, h-3 en escritorio) */}
-        <div className="w-full h-2 sm:h-3 bg-white/10 rounded-full overflow-hidden">
+        {/* Barra de carga fina y elegante: corta, centrada, azul claro */}
+        <div className="w-40 sm:w-48 h-[2px] bg-sky-100 rounded-full overflow-hidden">
           <div
             className="h-full rounded-full transition-[width] duration-150 ease-out"
             style={{
               width: `${progress}%`,
-              background: "linear-gradient(90deg, rgba(41, 170, 227, 0.7), rgba(41, 170, 227, 1))",
-              boxShadow: "0 0 12px rgba(41, 170, 227, 0.5)",
+              background: "linear-gradient(90deg, #7dd3fc, #38bdf8)",
             }}
           />
         </div>
+
+        {/* Texto sutil */}
+        <p className="text-sm text-gray-400 font-light">Cargando...</p>
       </div>
 
       <span className="sr-only">Cargando Rancho Cocory</span>
