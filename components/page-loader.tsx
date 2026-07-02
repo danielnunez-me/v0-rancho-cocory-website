@@ -2,12 +2,8 @@
 
 import { useState, useEffect, useCallback, useRef } from "react"
 
-const FULL_DURATION = 20000 // First visit: 20s cycle
-const FAST_DURATION = 2500 // Returning visit: >80% shorter cycle
-const EXIT_TRANSITION = 500 // Fade-out duration (ms)
-
 export function PageLoader() {
-  // Lazy initializers: read sessionStorage once, synchronously, for the fastest possible first render
+  // Lectura síncrona de sessionStorage: sin efectos ni timeouts artificiales
   const [isReturningVisit] = useState<boolean>(() => {
     if (typeof window === "undefined") return false
     return sessionStorage.getItem("ranchoCocoryLoaderShown") === "true"
@@ -15,13 +11,13 @@ export function PageLoader() {
   const [isVisible, setIsVisible] = useState(true)
   const [isExiting, setIsExiting] = useState(false)
   const [progress, setProgress] = useState(0)
-  const [pageLoaded, setPageLoaded] = useState(false)
-  const [durationMet, setDurationMet] = useState(false)
   const hasCompleted = useRef(false)
 
-  const duration = isReturningVisit ? FAST_DURATION : FULL_DURATION
+  // Duración de salida: visita recurrente = 80% más rápida (duration-150 vs duration-1000)
+  const exitDurationClass = isReturningVisit ? "duration-150" : "duration-1000"
+  const exitMs = isReturningVisit ? 150 : 1000
 
-  // Complete loading and trigger smooth exit transition
+  // Completa la carga y dispara la transición de salida (sin bloquear la app)
   const completeLoading = useCallback(() => {
     if (hasCompleted.current) return
     hasCompleted.current = true
@@ -29,53 +25,42 @@ export function PageLoader() {
     setProgress(100)
     sessionStorage.setItem("ranchoCocoryLoaderShown", "true")
 
-    setTimeout(() => {
+    // rAF: encadena la salida al siguiente frame de pintado, sin retrasos artificiales
+    requestAnimationFrame(() => {
       setIsExiting(true)
-      setTimeout(() => setIsVisible(false), EXIT_TRANSITION)
-    }, 200)
-  }, [])
+      setTimeout(() => setIsVisible(false), exitMs)
+    })
+  }, [exitMs])
 
-  // Progress bar synced to the active duration
+  // Progreso visual ligado a la carga real de la página (sin duración mínima artificial)
   useEffect(() => {
-    if (!isVisible) return
+    if (!isVisible || hasCompleted.current) return
 
-    const startTime = Date.now()
-    const progressInterval = setInterval(() => {
-      const elapsed = Date.now() - startTime
-      setProgress(Math.min((elapsed / duration) * 100, 100))
-    }, 50)
+    let rafId: number
+    const startTime = performance.now()
 
-    return () => clearInterval(progressInterval)
-  }, [isVisible, duration])
+    const tick = (now: number) => {
+      if (hasCompleted.current) return
+      const elapsed = now - startTime
+      // Curva asintótica: avanza rápido al inicio y se aproxima a 90% mientras carga
+      const simulated = 90 * (1 - Math.exp(-elapsed / 1200))
+      setProgress((prev) => Math.max(prev, Math.min(simulated, 90)))
+      rafId = requestAnimationFrame(tick)
+    }
+    rafId = requestAnimationFrame(tick)
 
-  // Minimum duration timer
-  useEffect(() => {
-    const timer = setTimeout(() => setDurationMet(true), duration)
-    return () => clearTimeout(timer)
-  }, [duration])
+    return () => cancelAnimationFrame(rafId)
+  }, [isVisible])
 
-  // Track page load state
+  // Completa en cuanto la página está realmente cargada — cero bloqueos
   useEffect(() => {
     if (document.readyState === "complete") {
-      setPageLoaded(true)
+      completeLoading()
       return
     }
-    const handleLoad = () => setPageLoaded(true)
+    const handleLoad = () => completeLoading()
     window.addEventListener("load", handleLoad)
     return () => window.removeEventListener("load", handleLoad)
-  }, [])
-
-  // Complete when BOTH conditions are met: page loaded AND duration elapsed
-  useEffect(() => {
-    if (durationMet && pageLoaded) {
-      completeLoading()
-    }
-  }, [durationMet, pageLoaded, completeLoading])
-
-  // Safety fallback: never block the page for more than 45s
-  useEffect(() => {
-    const fallback = setTimeout(completeLoading, 45000)
-    return () => clearTimeout(fallback)
   }, [completeLoading])
 
   if (!isVisible) return null
@@ -84,39 +69,41 @@ export function PageLoader() {
     <div
       role="status"
       aria-live="polite"
-      className={`fixed inset-x-0 top-0 z-[9999] transition-opacity duration-500 ease-out ${
-        isExiting ? "opacity-0" : "opacity-100"
+      className={`fixed inset-0 z-[9999] flex items-center justify-center bg-[#0b0b0b] transition-opacity ease-out ${exitDurationClass} ${
+        isExiting ? "opacity-0 pointer-events-none" : "opacity-100"
       }`}
     >
-      {/* Thick top progress bar */}
-      <div className="w-full h-2 sm:h-3 bg-black/10 overflow-hidden">
-        <div
-          className="h-full transition-[width] duration-100 ease-linear rounded-r-full"
+      {/* Contenedor responsivo: el video ya no ocupa toda la pantalla */}
+      <div className="flex w-full max-w-sm sm:max-w-md md:max-w-lg flex-col items-center gap-6 px-6">
+        {/* Video del loader: intacto y 100% responsive */}
+        <video
+          autoPlay
+          muted
+          loop
+          playsInline
+          className="w-full h-auto rounded-xl object-contain"
           style={{
-            width: `${progress}%`,
-            background: "linear-gradient(90deg, rgba(41, 170, 227, 0.7), rgba(41, 170, 227, 1))",
-            boxShadow: "0 0 12px rgba(41, 170, 227, 0.5)",
+            filter: "drop-shadow(0 0 40px rgba(41, 170, 227, 0.3))",
           }}
-        />
-      </div>
+          onError={completeLoading}
+        >
+          <source src="/loader-video.webm" type="video/webm" />
+        </video>
 
-      {/* Subtle centered loading indicator */}
-      <div className="flex justify-center mt-4 px-4">
-        <div className="flex items-center gap-3 rounded-full bg-black/70 backdrop-blur-sm border border-white/10 px-4 py-2 shadow-lg">
-          {/* Spinner */}
-          <span
-            className="h-4 w-4 shrink-0 rounded-full border-2 border-white/20 animate-spin"
-            style={{ borderTopColor: "rgba(41, 170, 227, 1)" }}
-            aria-hidden="true"
+        {/* Barra de carga más gruesa (h-2 en móvil, h-3 en escritorio) */}
+        <div className="w-full h-2 sm:h-3 bg-white/10 rounded-full overflow-hidden">
+          <div
+            className="h-full rounded-full transition-[width] duration-150 ease-out"
+            style={{
+              width: `${progress}%`,
+              background: "linear-gradient(90deg, rgba(41, 170, 227, 0.7), rgba(41, 170, 227, 1))",
+              boxShadow: "0 0 12px rgba(41, 170, 227, 0.5)",
+            }}
           />
-          <span className="text-white/90 text-xs sm:text-sm font-light tracking-wide whitespace-nowrap">
-            {"Cargando..."}
-          </span>
-          <span className="text-white/50 text-xs tabular-nums" aria-hidden="true">
-            {Math.round(progress)}%
-          </span>
         </div>
       </div>
+
+      <span className="sr-only">Cargando Rancho Cocory</span>
     </div>
   )
 }
