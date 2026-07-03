@@ -1,6 +1,7 @@
 import Image from "next/image"
 import { MapPin, ChevronDown } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { EditPencil } from "@/components/editor/editor-mode"
 
 export function Hero() {
   return (
@@ -27,11 +28,13 @@ export function Hero() {
 
         <p className="text-lg md:text-2xl font-bold text-white/95 mb-3">
           {'Diversión familiar en Higüey'}
+          <EditPencil />
         </p>
 
         <p className="flex items-center justify-center gap-1.5 text-white/80 mb-8 text-sm md:text-base">
           <MapPin className="size-4 shrink-0" />
           {'Autopista del Coral, Higüey, República Dominicana'}
+          <EditPencil />
         </p>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -40,7 +43,10 @@ export function Hero() {
             className="rounded-full text-base px-8 py-6 font-bold shadow-lg bg-primary text-primary-foreground hover:bg-primary/90"
             asChild
           >
-            <a href="#actividades">Explorar actividades</a>
+            <a href="#actividades">
+              Explorar actividades
+              <EditPencil />
+            </a>
           </Button>
           <Button
             size="lg"
@@ -48,7 +54,10 @@ export function Hero() {
             className="rounded-full text-base px-8 py-6 font-bold bg-white/15 text-white border-white/30 hover:bg-white/25 hover:text-white backdrop-blur-sm"
             asChild
           >
-            <a href="#contacto">Reservar ahora</a>
+            <a href="#contacto">
+              Reservar ahora
+              <EditPencil />
+            </a>
           </Button>
         </div>
       </div>

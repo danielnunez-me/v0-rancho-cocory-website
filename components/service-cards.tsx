@@ -19,6 +19,11 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog"
 import { useState } from "react"
+import {
+  EditPencil,
+  AddItemButton,
+  ItemControls,
+} from "@/components/editor/editor-mode"
 
 interface ServiceData {
   title: string
@@ -112,6 +117,7 @@ function ServiceCard({ service }: { service: ServiceData }) {
         aria-label={`Ver detalles de ${service.title}`}
       >
         <div className="relative h-56 overflow-hidden">
+          <ItemControls itemLabel={service.title} />
           <Image
             src={service.image}
             alt={service.title}
@@ -121,19 +127,23 @@ function ServiceCard({ service }: { service: ServiceData }) {
           />
           <div className="absolute top-3 right-3 bg-accent text-accent-foreground px-3 py-1 rounded-full text-sm font-bold shadow-md">
             {service.priceLabel}
+            <EditPencil className="w-3.5 h-3.5" />
           </div>
         </div>
         <CardHeader className="pb-2">
           <CardTitle className="text-lg font-bold text-foreground">
             {service.title}
+            <EditPencil />
           </CardTitle>
           <CardDescription className="text-sm">
             {service.priceLabel} {service.priceDetail}
+            <EditPencil className="w-3.5 h-3.5" />
           </CardDescription>
         </CardHeader>
         <CardContent className="pb-2">
           <p className="text-sm text-muted-foreground leading-relaxed">
             {service.description}
+            <EditPencil className="w-3.5 h-3.5" />
           </p>
         </CardContent>
         <CardFooter>
@@ -222,10 +232,13 @@ export function ServiceCards() {
           </p>
           <h2 className="text-3xl md:text-4xl font-bold text-foreground font-serif text-balance">
             {'Entradas y experiencias'}
+            <EditPencil />
           </h2>
           <p className="mt-3 text-muted-foreground max-w-xl mx-auto leading-relaxed">
             {'Descubre todo lo que Rancho Cocory tiene para ofrecer. Desde un relajante pasadia hasta aventuras llenas de adrenalina.'}
+            <EditPencil />
           </p>
+          <AddItemButton label="Añadir Nueva Actividad" />
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">

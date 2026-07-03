@@ -4,6 +4,11 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion"
+import {
+  EditPencil,
+  AddItemButton,
+  ItemControls,
+} from "@/components/editor/editor-mode"
 
 const faqs = [
   {
@@ -48,7 +53,9 @@ export function FAQ() {
           </p>
           <h2 className="text-3xl md:text-4xl font-bold text-foreground font-serif text-balance">
             {'Todo lo que necesitas saber'}
+            <EditPencil />
           </h2>
+          <AddItemButton label="Añadir Nueva Pregunta" />
         </div>
 
         <Accordion type="single" collapsible className="space-y-3">
@@ -56,13 +63,21 @@ export function FAQ() {
             <AccordionItem
               key={i}
               value={`item-${i}`}
-              className="bg-background rounded-xl px-5 border border-border/50 hover:border-primary/30 transition-colors"
+              className="relative bg-background rounded-xl px-5 border border-border/50 hover:border-primary/30 transition-colors"
             >
+              <ItemControls
+                itemLabel={faq.question}
+                className="top-1/2 -translate-y-1/2 left-auto -right-3"
+              />
               <AccordionTrigger className="text-left font-semibold text-foreground hover:no-underline">
-                {faq.question}
+                <span>
+                  {faq.question}
+                  <EditPencil />
+                </span>
               </AccordionTrigger>
               <AccordionContent className="text-muted-foreground leading-relaxed">
                 {faq.answer}
+                <EditPencil className="w-3.5 h-3.5" />
               </AccordionContent>
             </AccordionItem>
           ))}

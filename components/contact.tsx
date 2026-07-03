@@ -1,4 +1,5 @@
 import { Phone, Mail, MapPin, Clock } from "lucide-react"
+import { EditPencil } from "@/components/editor/editor-mode"
 
 const contactInfo = [
   {
@@ -85,9 +86,11 @@ export function Contact() {
           </p>
           <h2 className="text-3xl md:text-4xl font-bold text-foreground font-serif text-balance">
             {'Planifica tu visita'}
+            <EditPencil />
           </h2>
           <p className="mt-3 text-muted-foreground max-w-xl mx-auto leading-relaxed">
             {'Contactanos para reservar tu dia, solicitar informacion sobre paquetes especiales o resolver cualquier duda.'}
+            <EditPencil />
           </p>
         </div>
 
@@ -118,10 +121,12 @@ export function Contact() {
                       }
                     >
                       {item.value}
+                      <EditPencil className="w-3.5 h-3.5" />
                     </a>
                   ) : (
                     <p className="text-foreground font-semibold text-sm">
                       {item.value}
+                      <EditPencil className="w-3.5 h-3.5" />
                     </p>
                   )}
                 </div>

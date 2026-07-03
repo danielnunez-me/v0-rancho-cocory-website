@@ -7,10 +7,11 @@ import { Testimonials } from "@/components/testimonials"
 import { FAQ } from "@/components/faq"
 import { Contact } from "@/components/contact"
 import { Footer } from "@/components/footer"
+import { EditorProvider } from "@/components/editor/editor-mode"
 
 export default function Home() {
   return (
-    <>
+    <EditorProvider>
       <Navbar />
       <main>
         <Hero />
@@ -22,6 +23,6 @@ export default function Home() {
         <Contact />
       </main>
       <Footer />
-    </>
+    </EditorProvider>
   )
 }

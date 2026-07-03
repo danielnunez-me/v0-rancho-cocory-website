@@ -3,6 +3,11 @@
 import Image from "next/image"
 import { Instagram, Heart, MessageCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import {
+  EditPencil,
+  AddItemButton,
+  ItemControls,
+} from "@/components/editor/editor-mode"
 
 const instagramPosts = [
   {
@@ -53,10 +58,13 @@ export function Gallery() {
           </p>
           <h2 className="text-3xl md:text-4xl font-bold text-foreground font-serif text-balance">
             Siguenos en Instagram
+            <EditPencil />
           </h2>
           <p className="mt-3 text-muted-foreground max-w-xl mx-auto leading-relaxed">
             {'Mira las ultimas fotos y videos de la experiencia Rancho Cocory directamente desde nuestro Instagram.'}
+            <EditPencil />
           </p>
+          <AddItemButton label="Añadir Nueva Foto" />
         </div>
 
         {/* Instagram feed mockup */}
@@ -102,6 +110,7 @@ export function Gallery() {
                 rel="noopener noreferrer"
                 className="group relative aspect-square overflow-hidden"
               >
+                <ItemControls itemLabel={post.alt} />
                 <Image
                   src={post.image || "/placeholder.svg"}
                   alt={post.alt}

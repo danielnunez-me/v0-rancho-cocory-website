@@ -2,6 +2,11 @@
 
 import { Star } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import {
+  EditPencil,
+  AddItemButton,
+  ItemControls,
+} from "@/components/editor/editor-mode"
 
 const reviews = [
   {
@@ -100,6 +105,7 @@ export function Testimonials() {
           </p>
           <h2 className="text-3xl md:text-4xl font-bold text-foreground font-serif text-balance">
             Lo que dicen de nosotros
+            <EditPencil />
           </h2>
           <div className="flex items-center justify-center gap-2 mt-3">
             <GoogleLogo className="size-5" />
@@ -113,8 +119,10 @@ export function Testimonials() {
             </div>
             <span className="text-muted-foreground text-sm font-semibold">
               4.5 en Google Reviews
+              <EditPencil className="w-3.5 h-3.5" />
             </span>
           </div>
+          <AddItemButton label="Añadir Nueva Reseña" />
         </div>
 
         {/* Google-style review cards */}
@@ -122,8 +130,12 @@ export function Testimonials() {
           {reviews.map((review) => (
             <article
               key={review.name}
-              className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-5 shadow-sm"
+              className="relative flex flex-col gap-3 rounded-2xl border border-border bg-card p-5 shadow-sm"
             >
+              <ItemControls
+                itemLabel={`reseña de ${review.name}`}
+                className="top-auto -bottom-3 left-auto right-3"
+              />
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3">
                   <div
