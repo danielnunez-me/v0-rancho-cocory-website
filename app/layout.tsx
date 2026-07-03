@@ -50,7 +50,10 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="es" className={`${nunito.variable} ${playfair.variable}`}>
+    <html
+      lang="es"
+      className={`${nunito.variable} ${playfair.variable} scroll-smooth scroll-pt-16 bg-background`}
+    >
       <body className="font-sans antialiased">
         <PageLoader />
         {children}

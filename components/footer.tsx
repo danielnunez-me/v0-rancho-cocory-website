@@ -5,18 +5,18 @@ import { LegalLinks } from "@/components/legal-modals"
 
 export function Footer() {
   return (
-    <footer className="bg-foreground text-background py-12 px-4">
+    <footer className="bg-foreground text-background py-8 px-4">
       <div className="max-w-6xl mx-auto">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-6">
           {/* Brand */}
           <div>
             <div className="mb-3">
               <Image
                 src="/images/logo.png"
                 alt="Rancho Cocory"
-                width={140}
-                height={70}
-                className="h-16 w-auto object-contain brightness-0 invert"
+                width={240}
+                height={120}
+                className="h-24 w-auto object-contain"
               />
             </div>
             <p className="text-background/60 text-sm leading-relaxed">
@@ -72,9 +72,18 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="border-t border-background/10 pt-6 flex flex-col md:flex-row items-center justify-between gap-3">
+        <div className="border-t border-background/10 pt-4 flex flex-col md:flex-row items-center justify-between gap-3">
           <p className="text-xs text-background/40">
-            {'© 2026 Rancho Cocory. Todos los derechos reservados.'}
+            {'© 2026 Rancho Cocory. Hecho con ❤️ por '}
+            <a
+              href="https://danielnunez.me/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:underline font-medium"
+            >
+              Daniel Nuñez
+            </a>
+            .
           </p>
           <div className="flex gap-4">
             <LegalLinks />
