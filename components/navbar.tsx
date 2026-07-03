@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import Image from "next/image"
-import { Menu, X, MapPin, Phone } from "lucide-react"
+import { Menu, X, MapPin, Phone, Clock } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
@@ -39,13 +39,19 @@ export function Navbar() {
             Autopista del Coral, Higuey, Rep. Dominicana
           </a>
         </div>
-        <a
-          href="tel:+18299621367"
-          className="flex items-center gap-1.5 hover:underline"
-        >
-          <Phone className="size-3.5" />
-          (829) 962-1367
-        </a>
+        <div className="flex items-center gap-4">
+          <span className="flex items-center gap-1.5">
+            <Clock className="size-3.5" />
+            Lun - Dom: 9:00 AM - 6:00 PM
+          </span>
+          <a
+            href="tel:+18299621367"
+            className="flex items-center gap-1.5 hover:underline"
+          >
+            <Phone className="size-3.5" />
+            (829) 962-1367
+          </a>
+        </div>
       </div>
 
       {/* Main nav */}

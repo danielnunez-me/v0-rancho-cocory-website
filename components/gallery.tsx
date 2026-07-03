@@ -1,28 +1,49 @@
 "use client"
 
-import { useEffect, useRef } from "react"
-import { Instagram } from "lucide-react"
+import Image from "next/image"
+import { Instagram, Heart, MessageCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
+const instagramPosts = [
+  {
+    image: "/images/pool.jpg",
+    alt: "Piscinas de Rancho Cocory",
+    likes: 342,
+    comments: 28,
+  },
+  {
+    image: "/images/buggy.jpg",
+    alt: "Excursion en buggy",
+    likes: 517,
+    comments: 45,
+  },
+  {
+    image: "/images/gallery-1.jpg",
+    alt: "Areas verdes del parque",
+    likes: 289,
+    comments: 19,
+  },
+  {
+    image: "/images/horseback.jpg",
+    alt: "Paseo a caballo",
+    likes: 426,
+    comments: 33,
+  },
+  {
+    image: "/images/gallery-3.jpg",
+    alt: "Diversion familiar",
+    likes: 398,
+    comments: 41,
+  },
+  {
+    image: "/images/paintball.jpg",
+    alt: "Cancha de paintball",
+    likes: 275,
+    comments: 22,
+  },
+]
+
 export function Gallery() {
-  const containerRef = useRef<HTMLDivElement>(null)
-  const scriptLoaded = useRef(false)
-
-  useEffect(() => {
-    if (scriptLoaded.current) return
-    scriptLoaded.current = true
-
-    // Load Elfsight platform script for Instagram feed widget
-    const script = document.createElement("script")
-    script.src = "https://static.elfsight.com/platform/platform.js"
-    script.async = true
-    document.body.appendChild(script)
-
-    return () => {
-      // Cleanup is optional since script is reusable
-    }
-  }, [])
-
   return (
     <section id="galeria" className="py-20 md:py-28 px-4">
       <div className="max-w-6xl mx-auto">
@@ -38,28 +59,70 @@ export function Gallery() {
           </p>
         </div>
 
-        {/* Instagram feed widget container */}
-        <div ref={containerRef} className="min-h-[300px]">
-          {/*
-            Replace the class below with your actual Elfsight widget class.
-            To set it up:
-            1. Go to elfsight.com and create a free account
-            2. Create an "Instagram Feed" widget
-            3. Connect your Instagram account (@ranchococory)
-            4. Customize the layout (grid recommended, 6-12 posts)
-            5. Copy the widget class (e.g., "elfsight-app-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx")
-            6. Replace the class in the div below
-          */}
-          <div className="elfsight-app-REPLACE-WITH-YOUR-WIDGET-ID" data-elfsight-app-lazy />
+        {/* Instagram feed mockup */}
+        <div className="rounded-2xl border border-border bg-card overflow-hidden shadow-sm">
+          {/* Profile header */}
+          <div className="flex items-center justify-between px-4 py-3 md:px-6 md:py-4 border-b border-border">
+            <a
+              href="https://instagram.com/ranchococory"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-3 group"
+            >
+              <div className="rounded-full p-0.5 bg-primary">
+                <div className="rounded-full bg-card p-0.5">
+                  <Image
+                    src="/images/logo.png"
+                    alt="Rancho Cocory en Instagram"
+                    width={40}
+                    height={40}
+                    className="size-10 rounded-full object-contain bg-secondary"
+                  />
+                </div>
+              </div>
+              <div>
+                <p className="text-sm font-bold text-foreground group-hover:text-primary transition-colors">
+                  @ranchococory
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Parque Recreativo · Higuey, RD
+                </p>
+              </div>
+            </a>
+            <Instagram className="size-5 text-muted-foreground" aria-hidden="true" />
+          </div>
 
-          {/* Fallback while widget loads or if not configured */}
-          <noscript>
-            <div className="text-center py-12">
-              <p className="text-muted-foreground">
-                {'Habilita JavaScript para ver nuestro feed de Instagram.'}
-              </p>
-            </div>
-          </noscript>
+          {/* Posts grid */}
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-0.5">
+            {instagramPosts.map((post) => (
+              <a
+                key={post.image}
+                href="https://instagram.com/ranchococory"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group relative aspect-square overflow-hidden"
+              >
+                <Image
+                  src={post.image || "/placeholder.svg"}
+                  alt={post.alt}
+                  fill
+                  sizes="(max-width: 768px) 50vw, 33vw"
+                  className="object-cover transition-transform duration-300 group-hover:scale-105"
+                />
+                {/* Hover overlay with likes/comments */}
+                <div className="absolute inset-0 bg-foreground/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-5">
+                  <span className="flex items-center gap-1.5 text-background font-bold text-sm">
+                    <Heart className="size-4 fill-current" aria-hidden="true" />
+                    {post.likes}
+                  </span>
+                  <span className="flex items-center gap-1.5 text-background font-bold text-sm">
+                    <MessageCircle className="size-4 fill-current" aria-hidden="true" />
+                    {post.comments}
+                  </span>
+                </div>
+              </a>
+            ))}
+          </div>
         </div>
 
         <div className="text-center mt-8">
