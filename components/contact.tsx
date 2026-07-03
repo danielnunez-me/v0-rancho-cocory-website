@@ -59,7 +59,7 @@ function WhatsAppIcon() {
 
 export function Contact() {
   return (
-    <section id="contacto" className="py-20 md:py-28 px-4 bg-card">
+    <section id="contacto" className="pt-0 pb-20 md:pb-28 px-4 bg-card">
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-14">
           <p className="text-sm font-bold uppercase tracking-widest text-primary mb-2">
