@@ -138,7 +138,7 @@ export function Contact() {
                 asChild
               >
                 <a
-                  href="https://wa.me/18299621367?text=Hola,%20quiero%20reservar%20en%20Rancho%20Cocory"
+                  href="https://wa.me/18299621367?text=¡Hola!%20Me%20interesa%20reservar%20en%20Rancho%20Cocory.%20¿Me%20comparten%20tarifas%20y%20disponibilidad"
                   target="_blank"
                   rel="noopener noreferrer"
                 >
