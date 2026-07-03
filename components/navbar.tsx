@@ -41,20 +41,20 @@ export function Navbar() {
       </div>
 
       {/* Main nav */}
-      <nav className="flex items-center justify-between px-4 md:px-8 py-3">
+      <nav className="mx-auto flex h-20 w-full max-w-7xl items-center justify-between px-4 md:px-6 lg:px-8">
         <a href="#inicio" className="flex items-center">
           <Image
             src="/images/logo.png"
             alt="Rancho Cocory"
-            width={120}
-            height={60}
-            className="h-12 w-auto object-contain"
+            width={160}
+            height={80}
+            className="h-16 w-auto object-contain"
             priority
           />
         </a>
 
-        {/* Desktop links */}
-        <div className="hidden lg:flex items-center gap-6">
+        {/* Desktop / tablet links */}
+        <div className="hidden md:flex items-center gap-4 lg:gap-6">
           {navLinks.map((link) => (
             <a
               key={link.href}
@@ -66,8 +66,8 @@ export function Navbar() {
           ))}
         </div>
 
-        <div className="hidden lg:flex items-center gap-3">
-          <Button size="lg" className="rounded-full font-bold" asChild>
+        <div className="hidden md:flex items-center gap-3">
+          <Button className="rounded-full font-bold h-9 px-4 lg:h-11 lg:px-6" asChild>
             <a href="#contacto">Reservar ahora</a>
           </Button>
         </div>
@@ -76,7 +76,7 @@ export function Navbar() {
         <Button
           variant="ghost"
           size="icon"
-          className="lg:hidden"
+          className="md:hidden"
           onClick={() => setIsOpen(!isOpen)}
           aria-label={isOpen ? "Cerrar menu" : "Abrir menu"}
         >
@@ -87,7 +87,7 @@ export function Navbar() {
       {/* Mobile menu */}
       <div
         className={cn(
-          "lg:hidden overflow-hidden transition-all duration-300 ease-in-out",
+          "md:hidden overflow-hidden transition-all duration-300 ease-in-out",
           isOpen ? "max-h-96 border-t border-border/50" : "max-h-0"
         )}
       >
