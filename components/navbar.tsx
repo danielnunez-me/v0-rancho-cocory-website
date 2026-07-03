@@ -48,7 +48,7 @@ export function Navbar() {
             alt="Rancho Cocory"
             width={160}
             height={80}
-            className="h-16 w-auto object-contain"
+            className="h-16 w-auto object-contain transition-transform duration-300 hover:scale-110 active:scale-110"
             priority
           />
         </a>

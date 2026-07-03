@@ -22,19 +22,8 @@ export function Hero() {
       <div className="absolute inset-0 bg-foreground/40" />
 
       {/* Content */}
-      <div className="relative z-10 text-center px-4 max-w-3xl mx-auto">
-        {/* Logo */}
-        <div className="mb-6 flex justify-center">
-          <Image
-            src="/images/logo.png"
-            alt="Rancho Cocory"
-            width={320}
-            height={160}
-            className="h-32 md:h-44 w-auto object-contain drop-shadow-2xl"
-            priority
-          />
-          <h1 className="sr-only">Rancho Cocory</h1>
-        </div>
+      <div className="relative z-10 text-center px-4 max-w-3xl mx-auto mt-32 pt-8">
+        <h1 className="sr-only">Rancho Cocory</h1>
 
         <p className="text-lg md:text-2xl font-bold text-white/95 mb-3">
           {'Diversión familiar en Higüey'}
