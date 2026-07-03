@@ -92,7 +92,7 @@ function ReviewStars({ rating }: { rating: number }) {
 
 export function Testimonials() {
   return (
-    <section className="py-20 md:py-28 px-4">
+    <section className="pt-0 pb-20 md:pb-28 px-4">
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-14">
           <p className="text-sm font-bold uppercase tracking-widest text-primary mb-2">
