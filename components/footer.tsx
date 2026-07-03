@@ -74,7 +74,7 @@ export function Footer() {
 
         <div className="border-t border-background/10 pt-4 flex flex-col md:flex-row items-center justify-between gap-3">
           <p className="text-xs text-background/40">
-            {'© 2026 Rancho Cocory. Hecho con <3 por '}
+            {'© 2026 Rancho Cocory. Hecho con ❤️ por '}
             <a
               href="https://danielnunez.me/"
               target="_blank"

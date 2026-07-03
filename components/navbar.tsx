@@ -40,7 +40,7 @@ export function Navbar() {
           </a>
         </div>
         <div className="flex items-center gap-4">
-          <span className="flex items-center gap-1.5">
+          <span className="flex items-center gap-1.5 border-r border-primary-foreground/50 pr-4">
             <Clock className="size-3.5" />
             Lun - Dom: 9:00 AM - 6:00 PM
           </span>
