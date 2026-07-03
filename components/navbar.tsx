@@ -76,7 +76,7 @@ export function Navbar() {
 
         <div className="hidden md:flex items-center gap-3">
           <Button className="rounded-full font-bold h-9 px-4 lg:h-11 lg:px-6" asChild>
-            <a href="https://wa.me/18299621367?text=¡Hola!%20Me%20interesa%20reservar%20en%20Rancho%20Cocory.%20¿Me%20comparten%20tarifas%20y%20disponibilidad">
+            <a href="https://wa.me/18299621367?text=¡Hola!%20Me%20interesa%20reservar%20en%20Rancho%20Cocory.%20¿Me%20comparten%20tarifas%20y%20disponibilidad" target="_blank">
               <WhatsAppIcon className="size-4" />
               Reservar ahora
             </a>
@@ -86,7 +86,7 @@ export function Navbar() {
         {/* Mobile: compact reservar button + menu button */}
         <div className="flex md:hidden items-center gap-2">
           <Button size="sm" className="rounded-full font-bold h-9 px-3 text-xs" asChild>
-            <a href="https://wa.me/18299621367?text=¡Hola!%20Me%20interesa%20reservar%20en%20Rancho%20Cocory.%20¿Me%20comparten%20tarifas%20y%20disponibilidad">
+            <a href="https://wa.me/18299621367?text=¡Hola!%20Me%20interesa%20reservar%20en%20Rancho%20Cocory.%20¿Me%20comparten%20tarifas%20y%20disponibilidad" target="_blank">
               <WhatsAppIcon className="size-4" />
               Reservar
             </a>
