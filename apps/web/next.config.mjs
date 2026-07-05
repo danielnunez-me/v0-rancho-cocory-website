@@ -1,6 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   transpilePackages: ["@rancho-cocory/shared"],
+  turbopack: {
+    root: "../..",
+  },
   typescript: {
     ignoreBuildErrors: true,
   },

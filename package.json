@@ -2,11 +2,13 @@
   "name": "rancho-cocory",
   "version": "0.1.0",
   "private": true,
+  "packageManager": "pnpm@10.33.3",
   "scripts": {
     "dev": "pnpm --parallel -r dev",
     "dev:web": "pnpm --filter web dev",
     "dev:api": "pnpm --filter api dev",
-    "build": "pnpm -r build",
+    "build": "pnpm --filter web build",
+    "vercel-build": "pnpm --filter web build",
     "db:migrate": "pnpm --filter api prisma migrate dev",
     "db:seed": "pnpm --filter api prisma db seed",
     "db:generate": "pnpm --filter api prisma generate"
