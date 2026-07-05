@@ -1,5 +1,5 @@
 import type { GoogleReviewsResponse } from "@rancho-cocory/shared"
-import { getCached, getCacheMeta, isCacheFresh, setCache } from "../lib/cache"
+import { getCached, getCacheMeta, isCacheFresh, setCache } from "./cache"
 
 const CACHE_KEY = "google_reviews"
 const TTL_MS = 6 * 60 * 60 * 1000
@@ -47,8 +47,7 @@ export async function fetchGoogleReviews(): Promise<{
       headers: {
         "Content-Type": "application/json",
         "X-Goog-Api-Key": apiKey,
-        "X-Goog-FieldMask":
-          "displayName,rating,userRatingCount,reviews",
+        "X-Goog-FieldMask": "displayName,rating,userRatingCount,reviews",
       },
     })
 
@@ -63,8 +62,7 @@ export async function fetchGoogleReviews(): Promise<{
       userRatingCount: json.userRatingCount ?? 0,
       reviews: (json.reviews ?? []).map((review, index) => ({
         id: review.name ?? `review-${index}`,
-        authorName:
-          review.authorAttribution?.displayName ?? "Visitante",
+        authorName: review.authorAttribution?.displayName ?? "Visitante",
         rating: review.rating ?? 5,
         text: review.text?.text ?? "",
         relativeTime: review.relativePublishTimeDescription ?? "",

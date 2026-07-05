@@ -1,8 +1,5 @@
 import { PrismaClient } from "@prisma/client"
-import {
-  defaultPageContent,
-  pageContentSchema,
-} from "@rancho-cocory/shared"
+import { defaultPageContent } from "@rancho-cocory/shared"
 
 const prisma = new PrismaClient()
 

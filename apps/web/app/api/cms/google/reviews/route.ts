@@ -1,11 +1,9 @@
-import { Hono } from "hono"
+import { NextResponse } from "next/server"
 import { fetchGoogleReviews } from "@rancho-cocory/cms-server"
 
-export const googleReviewsRoutes = new Hono()
-
-googleReviewsRoutes.get("/reviews", async (c) => {
+export async function GET() {
   const { data, source } = await fetchGoogleReviews()
-  return c.json({
+  return NextResponse.json({
     ...(data ?? {
       rating: 0,
       userRatingCount: 0,
@@ -14,4 +12,4 @@ googleReviewsRoutes.get("/reviews", async (c) => {
     }),
     source,
   })
-})
+}

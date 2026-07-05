@@ -1,6 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  transpilePackages: ["@rancho-cocory/shared"],
+  transpilePackages: ["@rancho-cocory/shared", "@rancho-cocory/cms-server"],
+  serverExternalPackages: ["@prisma/client", "prisma"],
   turbopack: {
     root: "../..",
   },
@@ -16,15 +17,6 @@ const nextConfig = {
       { protocol: "https", hostname: "lh3.googleusercontent.com" },
       { protocol: "https", hostname: "**.googleusercontent.com" },
     ],
-  },
-  async rewrites() {
-    const apiUrl = process.env.CMS_API_URL ?? "http://localhost:3001"
-    return [
-      {
-        source: "/api/cms/:path*",
-        destination: `${apiUrl}/:path*`,
-      },
-    ]
   },
 }
 

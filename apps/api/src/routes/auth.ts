@@ -7,7 +7,7 @@ import {
   SESSION_COOKIE,
   validateSession,
   verifyPassword,
-} from "../lib/auth"
+} from "@rancho-cocory/cms-server"
 
 export const authRoutes = new Hono()
 

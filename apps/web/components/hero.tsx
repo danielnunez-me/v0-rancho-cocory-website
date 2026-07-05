@@ -13,9 +13,9 @@ export function Hero() {
   return (
     <section
       id="inicio"
-      className="relative min-h-[100dvh] flex items-center justify-center overflow-hidden"
+      className="relative min-h-[100dvh] overflow-hidden"
     >
-      <div className="relative h-full w-full min-h-[100dvh]">
+      <div className="absolute inset-0">
         <Image
           src={hero.backgroundImage}
           alt="Vista aerea del parque Rancho Cocory"
@@ -31,9 +31,9 @@ export function Hero() {
         />
       </div>
 
-      <div className="absolute inset-0 bg-foreground/40" />
+      <div className="absolute inset-0 bg-gradient-to-t from-foreground/75 via-foreground/35 to-primary/10" />
 
-      <div className="relative z-10 text-center px-4 max-w-3xl mx-auto mt-32 pt-8">
+      <div className="relative z-10 flex min-h-[100dvh] flex-col items-center justify-center px-4 pt-24 md:pt-28 pb-20 text-center max-w-3xl mx-auto">
         <h1 className="sr-only">Rancho Cocory</h1>
 
         <p className="text-lg md:text-2xl font-bold text-white/95 mb-3">
