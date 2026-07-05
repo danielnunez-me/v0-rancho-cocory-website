@@ -34,7 +34,9 @@ export async function createSession(): Promise<string> {
   return token
 }
 
-export async function validateSession(token: string | undefined): Promise<boolean> {
+export async function validateSession(
+  token: string | undefined,
+): Promise<boolean> {
   if (!token) return false
 
   const session = await prisma.adminSession.findUnique({ where: { token } })
@@ -56,3 +58,5 @@ export function isValidEditKey(editKey: string | undefined): boolean {
   const expected = process.env.EDIT_KEY ?? "dev-edit-key"
   return !!editKey && editKey === expected
 }
+
+export const SESSION_MAX_AGE_SECONDS = SESSION_HOURS * 60 * 60

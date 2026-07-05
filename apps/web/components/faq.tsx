@@ -42,7 +42,7 @@ function FaqCard({
     <>
       <AccordionItem
         value={`item-${index}`}
-        className="relative bg-background rounded-xl px-5 border border-border/50 hover:border-primary/30 transition-colors"
+        className="relative border-b-0 bg-background rounded-xl px-5 border border-border/50 hover:border-primary/30 transition-colors"
       >
         <ItemControls
           itemLabel={faq.question}
@@ -100,7 +100,7 @@ export function FAQ() {
   }
 
   return (
-    <section id="faq" className="pt-20 md:pt-28 pb-0 px-4 bg-card">
+    <section id="faq" className="py-20 md:py-28 px-4 bg-card">
       <div className="max-w-2xl mx-auto">
         <div className="text-center mb-14">
           <p className="text-sm font-bold uppercase tracking-widest text-primary mb-2">

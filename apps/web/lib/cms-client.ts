@@ -4,18 +4,10 @@ import type {
   PageContent,
 } from "@rancho-cocory/shared"
 
-function getBaseUrl() {
-  if (typeof window !== "undefined") {
-    return "/api/cms"
-  }
-  return process.env.CMS_API_URL ?? "http://localhost:3001"
-}
+const CMS_BASE = "/api/cms"
 
-async function cmsFetch<T>(
-  path: string,
-  init?: RequestInit,
-): Promise<T> {
-  const res = await fetch(`${getBaseUrl()}${path}`, {
+async function cmsFetch<T>(path: string, init?: RequestInit): Promise<T> {
+  const res = await fetch(`${CMS_BASE}${path}`, {
     ...init,
     credentials: "include",
     headers: {
@@ -32,6 +24,13 @@ async function cmsFetch<T>(
 }
 
 export async function getPageContent(): Promise<PageContent> {
+  if (typeof window === "undefined") {
+    const { getPageContent: loadContent } = await import(
+      "@rancho-cocory/cms-server"
+    )
+    return loadContent()
+  }
+
   return cmsFetch<PageContent>("/content")
 }
 

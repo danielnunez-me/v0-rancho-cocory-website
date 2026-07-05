@@ -63,7 +63,7 @@ export default async function RootLayout({
   return (
     <html
       lang="es"
-      className={`${nunito.variable} ${playfair.variable} scroll-smooth scroll-pt-16 bg-background`}
+      className={`${nunito.variable} ${playfair.variable} scroll-smooth scroll-pt-24 md:scroll-pt-28 bg-background`}
     >
       <body className="font-sans antialiased">
         <ContentProvider initialContent={initialContent}>

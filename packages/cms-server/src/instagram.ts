@@ -1,5 +1,5 @@
 import type { InstagramPost } from "@rancho-cocory/shared"
-import { getCached, getCacheMeta, isCacheFresh, setCache } from "../lib/cache"
+import { getCached, getCacheMeta, isCacheFresh, setCache } from "./cache"
 
 const CACHE_KEY = "instagram_feed"
 const TTL_MS = 60 * 60 * 1000
@@ -33,7 +33,10 @@ export async function fetchInstagramFeed(
   }
 
   if (!token || !userId) {
-    return { posts: cached?.slice(0, limit) ?? [], source: cached ? "cache" : "empty" }
+    return {
+      posts: cached?.slice(0, limit) ?? [],
+      source: cached ? "cache" : "empty",
+    }
   }
 
   try {

@@ -1,5 +1,5 @@
 import { Hono } from "hono"
-import { fetchInstagramFeed } from "../services/instagram"
+import { fetchInstagramFeed } from "@rancho-cocory/cms-server"
 
 export const instagramRoutes = new Hono()
 

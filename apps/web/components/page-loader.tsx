@@ -3,9 +3,17 @@
 import { useState, useEffect, useCallback, useRef } from "react"
 import { useContent } from "@/components/content-provider"
 
+function getMp4FallbackUrl(videoUrl: string): string | null {
+  if (videoUrl.endsWith(".webm")) {
+    return videoUrl.replace(/\.webm$/, ".mp4")
+  }
+  return null
+}
+
 export function PageLoader() {
   const { content } = useContent()
   const { loader } = content
+  const videoRef = useRef<HTMLVideoElement>(null)
 
   const [isReturningVisit] = useState<boolean>(() => {
     if (typeof window === "undefined") return false
@@ -18,6 +26,7 @@ export function PageLoader() {
 
   const exitDurationClass = isReturningVisit ? "duration-150" : "duration-1000"
   const exitMs = isReturningVisit ? 150 : 1000
+  const mp4FallbackUrl = getMp4FallbackUrl(loader.videoUrl)
 
   const completeLoading = useCallback(() => {
     if (hasCompleted.current) return
@@ -60,6 +69,19 @@ export function PageLoader() {
     return () => window.removeEventListener("load", handleLoad)
   }, [completeLoading])
 
+  useEffect(() => {
+    const video = videoRef.current
+    if (!video) return
+
+    video.muted = true
+    const playPromise = video.play()
+    if (playPromise !== undefined) {
+      playPromise.catch(() => {
+        // Autoplay may be blocked; loader still completes on window load.
+      })
+    }
+  }, [loader.videoUrl])
+
   if (!isVisible) return null
 
   return (
@@ -72,14 +94,22 @@ export function PageLoader() {
     >
       <div className="flex w-full max-w-sm sm:max-w-md md:max-w-lg flex-col items-center gap-5 px-6">
         <video
+          ref={videoRef}
           autoPlay
           muted
           loop
           playsInline
-          className="w-full h-auto object-contain"
+          preload="auto"
+          controls={false}
+          disablePictureInPicture
+          controlsList="nodownload nofullscreen noremoteplayback"
+          className="block w-full h-auto object-contain bg-white border-0 outline-none shadow-none"
           onError={completeLoading}
         >
           <source src={loader.videoUrl} type="video/webm" />
+          {mp4FallbackUrl ? (
+            <source src={mp4FallbackUrl} type="video/mp4" />
+          ) : null}
         </video>
 
         <div className="w-40 sm:w-48 h-[2px] bg-sky-100 rounded-full overflow-hidden">
