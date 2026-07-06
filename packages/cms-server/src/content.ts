@@ -2,14 +2,23 @@ import {
   pageContentSchema,
   type PageContent,
 } from "@rancho-cocory/shared"
-import { prisma } from "./prisma"
+import { FieldValue } from "firebase-admin/firestore"
+import { getDb } from "./firebase"
+
+const PAGE_CONTENT_DOC = "main"
 
 export async function getPageContent(): Promise<PageContent> {
-  const record = await prisma.pageContent.findUnique({ where: { id: "main" } })
-  if (!record) {
+  const snapshot = await getDb()
+    .collection("pageContent")
+    .doc(PAGE_CONTENT_DOC)
+    .get()
+
+  if (!snapshot.exists) {
     throw new Error("Page content not found")
   }
-  return pageContentSchema.parse(JSON.parse(record.data))
+
+  const data = snapshot.data()?.data
+  return pageContentSchema.parse(data)
 }
 
 export async function updatePageContent(
@@ -20,12 +29,27 @@ export async function updatePageContent(
   const updated = setByPath(current, path.split("."), value)
   const parsed = pageContentSchema.parse(updated)
 
-  await prisma.pageContent.update({
-    where: { id: "main" },
-    data: { data: JSON.stringify(parsed) },
-  })
+  await getDb().collection("pageContent").doc(PAGE_CONTENT_DOC).set(
+    {
+      data: parsed,
+      updatedAt: FieldValue.serverTimestamp(),
+    },
+    { merge: true },
+  )
 
   return parsed
+}
+
+export async function seedPageContent(content: PageContent): Promise<void> {
+  const parsed = pageContentSchema.parse(content)
+
+  await getDb().collection("pageContent").doc(PAGE_CONTENT_DOC).set(
+    {
+      data: parsed,
+      updatedAt: FieldValue.serverTimestamp(),
+    },
+    { merge: true },
+  )
 }
 
 function setByPath(obj: unknown, keys: string[], value: unknown): unknown {

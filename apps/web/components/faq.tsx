@@ -1,13 +1,11 @@
 "use client"
 
-import { useState } from "react"
+import { useState, type ReactNode } from "react"
+import * as AccordionPrimitive from "@radix-ui/react-accordion"
+import { ChevronDownIcon } from "lucide-react"
 import type { FaqItem } from "@rancho-cocory/shared"
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion"
+import { Accordion } from "@/components/ui/accordion"
+import { cn } from "@/lib/utils"
 import {
   AddItemButton,
   EditableText,
@@ -15,6 +13,63 @@ import {
   ItemEditDialog,
 } from "@/components/editor/editor-mode"
 import { useContent } from "@/components/content-provider"
+
+function FaqAccordionItem({
+  value,
+  className,
+  children,
+}: {
+  value: string
+  className?: string
+  children: ReactNode
+}) {
+  return (
+    <AccordionPrimitive.Item
+      value={value}
+      className={cn("rounded-xl border border-border/50", className)}
+    >
+      {children}
+    </AccordionPrimitive.Item>
+  )
+}
+
+function FaqAccordionTrigger({
+  className,
+  children,
+}: {
+  className?: string
+  children: ReactNode
+}) {
+  return (
+    <AccordionPrimitive.Header className="flex">
+      <AccordionPrimitive.Trigger
+        className={cn(
+          "flex flex-1 items-start justify-between gap-4 rounded-md py-4 text-left text-sm font-semibold text-foreground transition-all outline-none hover:no-underline focus-visible:ring-[3px] focus-visible:ring-ring/50 [&[data-state=open]>svg]:rotate-180",
+          className,
+        )}
+      >
+        {children}
+        <ChevronDownIcon className="pointer-events-none size-4 shrink-0 translate-y-0.5 text-muted-foreground transition-transform duration-200" />
+      </AccordionPrimitive.Trigger>
+    </AccordionPrimitive.Header>
+  )
+}
+
+function FaqAccordionContent({
+  className,
+  children,
+}: {
+  className?: string
+  children: ReactNode
+}) {
+  return (
+    <AccordionPrimitive.Content className="overflow-hidden text-sm data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down">
+      <div className={cn("pb-4 text-muted-foreground leading-relaxed", className)}>
+        {children}
+      </div>
+    </AccordionPrimitive.Content>
+  )
+}
 
 function FaqCard({
   faq,
@@ -40,9 +95,9 @@ function FaqCard({
 
   return (
     <>
-      <AccordionItem
+      <FaqAccordionItem
         value={`item-${index}`}
-        className="relative border-b-0 bg-background rounded-xl px-5 border border-border/50 hover:border-primary/30 transition-colors"
+        className="relative bg-background px-5 hover:border-primary/30 transition-colors"
       >
         <ItemControls
           itemLabel={faq.question}
@@ -50,13 +105,9 @@ function FaqCard({
           onEdit={() => setEditOpen(true)}
           onDelete={onDelete}
         />
-        <AccordionTrigger className="text-left font-semibold text-foreground hover:no-underline">
-          {faq.question}
-        </AccordionTrigger>
-        <AccordionContent className="text-muted-foreground leading-relaxed">
-          {faq.answer}
-        </AccordionContent>
-      </AccordionItem>
+        <FaqAccordionTrigger>{faq.question}</FaqAccordionTrigger>
+        <FaqAccordionContent>{faq.answer}</FaqAccordionContent>
+      </FaqAccordionItem>
 
       <ItemEditDialog
         open={editOpen}

@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   transpilePackages: ["@rancho-cocory/shared", "@rancho-cocory/cms-server"],
-  serverExternalPackages: ["@prisma/client", "prisma"],
+  serverExternalPackages: ["firebase-admin"],
   turbopack: {
     root: "../..",
   },

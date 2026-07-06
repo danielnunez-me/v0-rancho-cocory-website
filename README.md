@@ -1,6 +1,6 @@
 # Rancho Cocory — Monorepo CMS Headless
 
-Monorepo con frontend Next.js y backend CMS (Next.js Route Handlers + Supabase Postgres) para el sitio de Rancho Cocory.
+Monorepo con frontend Next.js y backend CMS (Next.js Route Handlers + Firebase Firestore) para el sitio de Rancho Cocory.
 
 ## Estructura
 
@@ -8,7 +8,7 @@ Monorepo con frontend Next.js y backend CMS (Next.js Route Handlers + Supabase P
 apps/web/              → Frontend Next.js + API /api/cms/*
 apps/api/              → API Hono opcional para desarrollo local
 packages/shared/       → Tipos Zod y contenido por defecto
-packages/cms-server/   → Lógica compartida (Prisma, auth, contenido)
+packages/cms-server/   → Lógica compartida (Firebase, auth, contenido)
 ```
 
 ## Inicio rápido
@@ -18,11 +18,10 @@ pnpm install
 cp .env.example apps/api/.env
 cp .env.example apps/web/.env.local
 
-# Configura DATABASE_URL y DIRECT_URL con tu proyecto Supabase
+# Configura FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL y FIREBASE_PRIVATE_KEY
 
-# Migrar y seed de la base de datos
-pnpm db:migrate
-pnpm db:seed
+# Seed de la base de datos Firestore
+pnpm firebase:seed
 
 # Iniciar frontend (incluye API integrada en /api/cms)
 pnpm dev:web
@@ -42,22 +41,26 @@ pnpm dev:api
 3. Aparece el botón flotante de editar (esquina inferior izquierda)
 4. Edita textos, imágenes, listas y colores directamente en la página
 
-## Deploy en Vercel + Supabase
+## Deploy en Vercel + Firebase
 
-### 1. Crear proyecto Supabase
+### 1. Crear proyecto Firebase
 
-1. Crea un proyecto en [supabase.com](https://supabase.com)
-2. En **Project Settings → Database**, copia:
-   - **Transaction pooler** (puerto 6543) → `DATABASE_URL`
-   - **Direct connection** (puerto 5432) → `DIRECT_URL`
+1. Crea un proyecto en [Firebase Console](https://console.firebase.google.com/)
+2. Habilita **Firestore Database** (modo production)
+3. En **Project Settings → Service accounts**, genera una nueva private key (JSON)
+4. Mapea los campos del JSON a las variables de entorno:
+   - `project_id` → `FIREBASE_PROJECT_ID`
+   - `client_email` → `FIREBASE_CLIENT_EMAIL`
+   - `private_key` → `FIREBASE_PRIVATE_KEY` (escapa `\n` en Vercel)
 
-### 2. Migrar la base de datos
+**Reglas Firestore:** deniega acceso cliente; todo el acceso es server-side vía Admin SDK.
 
-Desde tu máquina local con las credenciales de Supabase:
+### 2. Seed de la base de datos
+
+Desde tu máquina local con las credenciales de Firebase:
 
 ```bash
-pnpm db:migrate
-pnpm db:seed
+pnpm firebase:seed
 ```
 
 ### 3. Variables de entorno en Vercel
@@ -66,8 +69,9 @@ Configura en el proyecto Vercel (scope **Preview** y **Production**):
 
 | Variable | Descripción |
 |----------|-------------|
-| `DATABASE_URL` | Connection string pooler de Supabase (6543) |
-| `DIRECT_URL` | Connection string directa (5432) |
+| `FIREBASE_PROJECT_ID` | ID del proyecto Firebase |
+| `FIREBASE_CLIENT_EMAIL` | Email del service account |
+| `FIREBASE_PRIVATE_KEY` | Clave privada del service account |
 | `EDIT_KEY` | Clave secreta para `?edit_key=` en la URL |
 | `ADMIN_PASSWORD` | Contraseña del editor inline |
 | `INSTAGRAM_ACCESS_TOKEN` | Opcional |
@@ -118,10 +122,7 @@ Sin credenciales, la sección de testimonios muestra un mensaje informativo.
 
 ## Loader video
 
-Coloca el archivo de video en `apps/web/public/`:
-
-- `loader-video.webm` (principal)
-- `loader-video.mp4` (fallback Safari)
+El video del loader ya está en `apps/web/public/loader-video.webm`. Opcionalmente puedes agregar `loader-video.mp4` como fallback Safari.
 
 ## Scripts
 
@@ -129,7 +130,6 @@ Coloca el archivo de video en `apps/web/public/`:
 pnpm dev          # Frontend + API Hono en paralelo
 pnpm dev:web      # Solo frontend (API integrada)
 pnpm dev:api      # Solo API Hono
-pnpm db:migrate   # Migraciones Prisma (Supabase)
-pnpm db:seed      # Seed contenido inicial
+pnpm firebase:seed # Seed contenido inicial en Firestore
 pnpm build        # Build del frontend
 ```

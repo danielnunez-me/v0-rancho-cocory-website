@@ -1,9 +1,11 @@
 import { randomBytes } from "node:crypto"
 import bcrypt from "bcryptjs"
-import { prisma } from "./prisma"
+import { Timestamp } from "firebase-admin/firestore"
+import { getDb, isFirebaseConfigured } from "./firebase"
 
 const SESSION_COOKIE = "cms_session"
 const SESSION_HOURS = 8
+const SESSIONS_COLLECTION = "adminSessions"
 
 export { SESSION_COOKIE }
 
@@ -27,8 +29,13 @@ export async function createSession(): Promise<string> {
   const token = randomBytes(32).toString("hex")
   const expiresAt = new Date(Date.now() + SESSION_HOURS * 60 * 60 * 1000)
 
-  await prisma.adminSession.create({
-    data: { token, expiresAt },
+  if (!isFirebaseConfigured()) {
+    throw new Error("Firebase credentials not configured")
+  }
+
+  await getDb().collection(SESSIONS_COLLECTION).doc(token).set({
+    expiresAt: Timestamp.fromDate(expiresAt),
+    createdAt: Timestamp.now(),
   })
 
   return token
@@ -37,13 +44,18 @@ export async function createSession(): Promise<string> {
 export async function validateSession(
   token: string | undefined,
 ): Promise<boolean> {
-  if (!token) return false
+  if (!token || !isFirebaseConfigured()) return false
 
-  const session = await prisma.adminSession.findUnique({ where: { token } })
-  if (!session) return false
+  const snapshot = await getDb()
+    .collection(SESSIONS_COLLECTION)
+    .doc(token)
+    .get()
 
-  if (session.expiresAt < new Date()) {
-    await prisma.adminSession.delete({ where: { token } })
+  if (!snapshot.exists) return false
+
+  const expiresAt = snapshot.data()?.expiresAt?.toDate() as Date | undefined
+  if (!expiresAt || expiresAt < new Date()) {
+    await getDb().collection(SESSIONS_COLLECTION).doc(token).delete()
     return false
   }
 
@@ -51,7 +63,7 @@ export async function validateSession(
 }
 
 export async function deleteSession(token: string): Promise<void> {
-  await prisma.adminSession.deleteMany({ where: { token } })
+  await getDb().collection(SESSIONS_COLLECTION).doc(token).delete()
 }
 
 export function isValidEditKey(editKey: string | undefined): boolean {
