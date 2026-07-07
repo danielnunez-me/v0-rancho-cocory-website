@@ -1,6 +1,12 @@
 import { NextResponse } from "next/server"
 import { cookies } from "next/headers"
-import { contentPatchSchema } from "@rancho-cocory/shared"
+import {
+  contentPatchSchema,
+  DEFAULT_LOCALE,
+  getLocaleContent,
+  resolveLocale,
+  type Locale,
+} from "@rancho-cocory/shared"
 import {
   getPageContent,
   SESSION_COOKIE,
@@ -8,9 +14,19 @@ import {
   validateSession,
 } from "@rancho-cocory/cms-server"
 
-export async function GET() {
+export async function GET(request: Request) {
+  const url = new URL(request.url)
+  const locale = resolveLocale({
+    searchParams: url.searchParams,
+    acceptLanguage: request.headers.get("accept-language"),
+  })
+
   try {
-    const content = await getPageContent()
+    const content =
+      locale === DEFAULT_LOCALE
+        ? await getPageContent()
+        : await getLocaleContent(locale as Locale)
+
     return NextResponse.json(content)
   } catch (error) {
     console.error("Failed to load page content:", error)
@@ -25,6 +41,19 @@ export async function PATCH(request: Request) {
 
   if (!isAuthed) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
+  const url = new URL(request.url)
+  const locale = resolveLocale({
+    searchParams: url.searchParams,
+    acceptLanguage: request.headers.get("accept-language"),
+  })
+
+  if (locale !== DEFAULT_LOCALE) {
+    return NextResponse.json(
+      { error: `Editing is only supported for ${DEFAULT_LOCALE}` },
+      { status: 400 },
+    )
   }
 
   const body = await request.json()

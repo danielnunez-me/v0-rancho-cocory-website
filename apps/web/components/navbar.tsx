@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { EditableText } from "@/components/editor/editor-mode"
 import { useContent } from "@/components/content-provider"
+import { getUiStrings } from "@rancho-cocory/shared"
 
 function WhatsAppIcon({ className }: { className?: string }) {
   return (
@@ -17,8 +18,9 @@ function WhatsAppIcon({ className }: { className?: string }) {
 }
 
 export function Navbar() {
-  const { content } = useContent()
+  const { content, locale } = useContent()
   const { navbar } = content
+  const ui = getUiStrings(locale)
   const [isOpen, setIsOpen] = useState(false)
 
   return (
@@ -95,7 +97,7 @@ export function Navbar() {
             variant="ghost"
             size="icon"
             onClick={() => setIsOpen(!isOpen)}
-            aria-label={isOpen ? "Cerrar menu" : "Abrir menu"}
+            aria-label={isOpen ? ui.closeMenu : ui.openMenu}
           >
             {isOpen ? <X className="size-6" /> : <Menu className="size-6" />}
           </Button>
