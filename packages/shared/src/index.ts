@@ -1,1 +1,10 @@
 export * from "./page-content"
+export { defaultPageContent } from "./default-content"
+
+export * from "./i18n/config"
+export * from "./i18n/resolve-locale"
+export * from "./i18n/parse-accept-language"
+export * from "./i18n/get-locale-content"
+export * from "./i18n/ui-strings"
+export * from "./i18n/metadata"
+export { enPageContent } from "./locales/en"

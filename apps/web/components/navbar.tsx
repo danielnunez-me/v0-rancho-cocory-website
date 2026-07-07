@@ -5,6 +5,7 @@ import Image from "next/image"
 import { Menu, X, MapPin, Phone, Clock } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
+import { getUiStrings } from "@rancho-cocory/shared"
 import { EditableText } from "@/components/editor/editor-mode"
 import { useContent } from "@/components/content-provider"
 
@@ -17,8 +18,9 @@ function WhatsAppIcon({ className }: { className?: string }) {
 }
 
 export function Navbar() {
-  const { content } = useContent()
+  const { content, locale } = useContent()
   const { navbar } = content
+  const strings = getUiStrings(locale)
   const [isOpen, setIsOpen] = useState(false)
 
   return (
@@ -95,7 +97,7 @@ export function Navbar() {
             variant="ghost"
             size="icon"
             onClick={() => setIsOpen(!isOpen)}
-            aria-label={isOpen ? "Cerrar menu" : "Abrir menu"}
+            aria-label={isOpen ? strings.closeMenu : strings.openMenu}
           >
             {isOpen ? <X className="size-6" /> : <Menu className="size-6" />}
           </Button>

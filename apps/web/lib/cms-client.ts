@@ -1,8 +1,10 @@
 import type {
   GoogleReviewsResponse,
   InstagramPost,
+  Locale,
   PageContent,
 } from "@rancho-cocory/shared"
+import { getLocaleContent } from "@rancho-cocory/shared"
 
 const CMS_BASE = "/api/cms"
 
@@ -23,7 +25,16 @@ async function cmsFetch<T>(path: string, init?: RequestInit): Promise<T> {
   return res.json() as Promise<T>
 }
 
-export async function getPageContent(): Promise<PageContent> {
+export async function getPageContent(
+  locale: Locale = "es",
+): Promise<PageContent> {
+  if (locale !== "es") {
+    if (typeof window === "undefined") {
+      return getLocaleContent(locale)
+    }
+    return cmsFetch<PageContent>(`/content?lang=${encodeURIComponent(locale)}`)
+  }
+
   if (typeof window === "undefined") {
     const { getPageContent: loadContent } = await import(
       "@rancho-cocory/cms-server"

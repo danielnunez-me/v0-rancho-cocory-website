@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react"
 import { useContent } from "@/components/content-provider"
+import { getUiStrings } from "@rancho-cocory/shared"
 
 function getMp4FallbackUrl(videoUrl: string): string | null {
   if (videoUrl.endsWith(".webm")) {
@@ -11,8 +12,9 @@ function getMp4FallbackUrl(videoUrl: string): string | null {
 }
 
 export function PageLoader() {
-  const { content } = useContent()
+  const { content, locale } = useContent()
   const { loader } = content
+  const strings = getUiStrings(locale)
   const videoRef = useRef<HTMLVideoElement>(null)
 
   const [isReturningVisit] = useState<boolean>(() => {
@@ -125,7 +127,7 @@ export function PageLoader() {
         <p className="text-sm text-gray-400 font-light">{loader.loadingText}</p>
       </div>
 
-      <span className="sr-only">Cargando Rancho Cocory</span>
+      <span className="sr-only">{strings.loaderSrOnly}</span>
     </div>
   )
 }

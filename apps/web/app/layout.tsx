@@ -1,11 +1,17 @@
 import { Suspense } from "react"
 import type { Metadata, Viewport } from "next"
+import { headers } from "next/headers"
 import { Nunito, Playfair_Display } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
 import { Toaster } from "@/components/ui/sonner"
 import { PageLoader } from "@/components/page-loader"
 import { ContentProvider } from "@/components/content-provider"
 import { getPageContent } from "@/lib/cms-client"
+import {
+  DEFAULT_LOCALE,
+  getLocaleMetadata,
+  type Locale,
+} from "@rancho-cocory/shared"
 import "./globals.css"
 
 const nunito = Nunito({
@@ -18,28 +24,10 @@ const playfair = Playfair_Display({
   variable: "--font-playfair",
 })
 
-export const metadata: Metadata = {
-  title: "Rancho Cocory | Parque Recreativo en Higuey, Republica Dominicana",
-  description:
-    "Rancho Cocory es el parque recreativo familiar en Higuey con piscinas, excursiones en buggy, paseos a caballo, paintball y mucho mas. Desde RD$350 por adulto.",
-  keywords: [
-    "Rancho Cocory",
-    "parque recreativo",
-    "Higuey",
-    "Republica Dominicana",
-    "piscinas",
-    "buggy",
-    "paintball",
-    "pasadia",
-    "excursiones",
-  ],
-  openGraph: {
-    title: "Rancho Cocory | Parque Recreativo en Higuey",
-    description:
-      "Diversión familiar en Higuey. Piscinas, excursiones, paintball y mas.",
-    type: "website",
-    locale: "es_DO",
-  },
+export async function generateMetadata(): Promise<Metadata> {
+  const headersList = await headers()
+  const locale = (headersList.get("x-locale") ?? DEFAULT_LOCALE) as Locale
+  return getLocaleMetadata(locale)
 }
 
 export const viewport: Viewport = {
@@ -53,20 +41,23 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  const headersList = await headers()
+  const locale = (headersList.get("x-locale") ?? DEFAULT_LOCALE) as Locale
+
   let initialContent
   try {
-    initialContent = await getPageContent()
+    initialContent = await getPageContent(locale)
   } catch {
     initialContent = undefined
   }
 
   return (
     <html
-      lang="es"
+      lang={locale}
       className={`${nunito.variable} ${playfair.variable} scroll-smooth scroll-pt-24 md:scroll-pt-28 bg-background`}
     >
       <body className="font-sans antialiased">
-        <ContentProvider initialContent={initialContent}>
+        <ContentProvider locale={locale} initialContent={initialContent}>
           <PageLoader />
           <Suspense fallback={null}>{children}</Suspense>
           <Toaster />

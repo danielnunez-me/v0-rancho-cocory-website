@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server"
 import { cookies } from "next/headers"
-import { contentPatchSchema } from "@rancho-cocory/shared"
+import {
+  contentPatchSchema,
+  getLocaleContent,
+  isSupportedLocale,
+  type Locale,
+} from "@rancho-cocory/shared"
 import {
   getPageContent,
   SESSION_COOKIE,
@@ -8,9 +13,15 @@ import {
   validateSession,
 } from "@rancho-cocory/cms-server"
 
-export async function GET() {
+export async function GET(request: Request) {
+  const url = new URL(request.url)
+  const langParam = url.searchParams.get("lang")
+  const locale: Locale =
+    langParam && isSupportedLocale(langParam) ? langParam : "es"
+
   try {
-    const content = await getPageContent()
+    const content =
+      locale === "es" ? await getPageContent() : await getLocaleContent(locale)
     return NextResponse.json(content)
   } catch (error) {
     console.error("Failed to load page content:", error)
