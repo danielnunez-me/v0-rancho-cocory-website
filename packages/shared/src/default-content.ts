@@ -1,4 +1,21 @@
 import type { PageContent } from "./page-content"
+import { buildWhatsAppUrl } from "./whatsapp"
+
+const WHATSAPP_PHONE = "18299621367"
+const WHATSAPP_MESSAGE =
+  "¡Hola! Me interesa reservar en Rancho Cocory. ¿Me comparten tarifas y disponibilidad?"
+
+const defaultMediaUrls = [
+  "/images/hero-bg.jpg",
+  "/images/pool.jpg",
+  "/images/paintball.jpg",
+  "/images/buggy.jpg",
+  "/images/horseback.jpg",
+  "/images/gallery-1.jpg",
+  "/images/gallery-3.jpg",
+  "/images/logo.png",
+  "/loader-video.webm",
+]
 
 export const defaultPageContent: PageContent = {
   theme: {
@@ -13,14 +30,73 @@ export const defaultPageContent: PageContent = {
     progressGradientStart: "#7dd3fc",
     progressGradientEnd: "#38bdf8",
   },
+  branding: {
+    logoUrl: "/images/logo.png",
+    faviconUrl: "/icon.svg",
+    appleTouchIconUrl: "/images/logo.png",
+  },
+  seo: {
+    title: "Rancho Cocory | Parque Recreativo en Higuey, Republica Dominicana",
+    description:
+      "Rancho Cocory es el parque recreativo familiar en Higuey con piscinas, excursiones en buggy, paseos a caballo, paintball y mucho mas. Desde RD$350 por adulto.",
+    openGraphTitle: "Rancho Cocory | Parque Recreativo en Higuey",
+    openGraphDescription:
+      "Diversión familiar en Higuey. Piscinas, excursiones, paintball y mas.",
+    openGraphImage: "/images/hero-bg.jpg",
+    themeColor: "#29aae3",
+  },
+  whatsapp: {
+    phone: WHATSAPP_PHONE,
+    defaultMessage: WHATSAPP_MESSAGE,
+  },
+  mediaLibrary: defaultMediaUrls.map((url, index) => ({
+    id: `media-${index + 1}`,
+    url,
+    name: url.split("/").pop() ?? url,
+  })),
+  legal: {
+    privacyPolicy: {
+      title: "Politica de Privacidad",
+      lastUpdated: "Febrero 2026",
+      content: `<p>En Rancho Cocory, nos comprometemos a proteger su privacidad. Esta politica describe como recopilamos, usamos y protegemos su informacion personal.</p>
+<h3>Informacion que recopilamos</h3>
+<p>Podemos recopilar informacion personal cuando usted nos contacta para hacer reservaciones, incluyendo su nombre, numero de telefono, correo electronico y cualquier informacion adicional que proporcione voluntariamente.</p>
+<h3>Uso de la informacion</h3>
+<p>Utilizamos su informacion exclusivamente para procesar sus reservaciones, responder a sus consultas, enviar confirmaciones de reserva y mejorar nuestros servicios. No compartimos su informacion personal con terceros sin su consentimiento.</p>
+<h3>Proteccion de datos</h3>
+<p>Implementamos medidas de seguridad razonables para proteger su informacion personal contra acceso no autorizado, alteracion, divulgacion o destruccion.</p>
+<h3>Contacto</h3>
+<p>Si tiene preguntas sobre esta politica de privacidad, puede contactarnos al (829) 962-1367 o al correo ranchococory95@gmail.com.</p>`,
+    },
+    termsAndConditions: {
+      title: "Terminos y Condiciones",
+      lastUpdated: "Febrero 2026",
+      content: `<p>Al visitar Rancho Cocory y utilizar nuestras instalaciones, usted acepta los siguientes terminos y condiciones.</p>
+<h3>Entrada y acceso</h3>
+<p>La entrada al parque requiere el pago de la tarifa correspondiente. Los precios pueden variar segun el dia de la semana y temporada. Los ninos menores de cierta edad pueden tener tarifas reducidas o entrada gratuita segun la politica vigente.</p>
+<h3>Reglas del parque</h3>
+<ul>
+<li>No se permite el ingreso de comida o bebidas externas.</li>
+<li>Se requiere el uso de vestimenta adecuada en las areas de piscina.</li>
+<li>Los menores de edad deben estar acompanados por un adulto responsable en todo momento.</li>
+<li>Se deben respetar las instrucciones del personal en todas las actividades.</li>
+<li>Rancho Cocory no se hace responsable por objetos perdidos o danados.</li>
+</ul>
+<h3>Actividades y excursiones</h3>
+<p>La participacion en actividades como paintball, excursiones en buggy y paseos a caballo es bajo la responsabilidad del participante. Todos los participantes deben seguir las instrucciones de seguridad proporcionadas por los instructores.</p>
+<h3>Cancelaciones y reservas</h3>
+<p>Las reservaciones pueden ser canceladas o modificadas con al menos 24 horas de anticipacion. Consulte con nuestro equipo para mas detalles sobre nuestra politica de reembolsos.</p>
+<h3>Contacto</h3>
+<p>Para cualquier consulta sobre estos terminos, contactenos al (829) 962-1367 o al correo ranchococory95@gmail.com.</p>`,
+    },
+  },
   navbar: {
     address: "Autopista del Coral, Higuey, Rep. Dominicana",
     addressHref: "https://maps.app.goo.gl/3kFM8x6hnN7P3Xrc8",
     hours: "Lun - Dom: 9:00 AM - 6:00 PM",
     phone: "(829) 962-1367",
     phoneHref: "tel:+18299621367",
-    whatsappHref:
-      "https://wa.me/18299621367?text=¡Hola!%20Me%20interesa%20reservar%20en%20Rancho%20Cocory.%20¿Me%20comparten%20tarifas%20y%20disponibilidad",
+    whatsappHref: buildWhatsAppUrl(WHATSAPP_PHONE, WHATSAPP_MESSAGE),
     reserveLabel: "Reservar ahora",
     navLinks: [
       { label: "Inicio", href: "#inicio" },
@@ -37,12 +113,14 @@ export const defaultPageContent: PageContent = {
     ctaPrimary: "Explorar actividades",
     ctaSecondary: "Reservar ahora",
     backgroundImage: "/images/hero-bg.jpg",
+    style: {},
   },
   services: {
     eyebrow: "Nuestras actividades",
     title: "Entradas y experiencias",
     subtitle:
       "Descubre todo lo que Rancho Cocory tiene para ofrecer. Desde un relajante pasadia hasta aventuras llenas de adrenalina.",
+    style: {},
     items: [
       {
         id: "service-1",
@@ -117,6 +195,7 @@ export const defaultPageContent: PageContent = {
     title: "Experiencias y amenidades",
     subtitle:
       "Todo lo que necesitas para un dia perfecto en familia, rodeado de la naturaleza tropical dominicana.",
+    style: { backgroundColor: "hsl(var(--card))" },
     items: [
       {
         id: "exp-1",
@@ -164,6 +243,7 @@ export const defaultPageContent: PageContent = {
     title: "Siguenos en Instagram",
     subtitle:
       "Mira las ultimas fotos y videos de la experiencia Rancho Cocory directamente desde nuestro Instagram.",
+    style: {},
     handle: "@ranchococory",
     profileBio: "Parque Recreativo · Higuey, RD",
     profileImage: "/images/logo.png",
@@ -217,6 +297,7 @@ export const defaultPageContent: PageContent = {
   testimonials: {
     eyebrow: "Nuestros visitantes",
     title: "Lo que dicen de nosotros",
+    style: {},
     googlePlaceId: "ChIJ6eHmZkhIqowRNY9WuTsX2289",
     googleReviewsUrl:
       "https://search.google.com/local/reviews?placeid=ChIJ6eHmZkhIqowRNY9WuTsX2289",
@@ -225,6 +306,7 @@ export const defaultPageContent: PageContent = {
   faq: {
     eyebrow: "Preguntas frecuentes",
     title: "Todo lo que necesitas saber",
+    style: { backgroundColor: "hsl(var(--card))" },
     items: [
       {
         id: "faq-1",
@@ -270,6 +352,7 @@ export const defaultPageContent: PageContent = {
     subtitle:
       "Contactanos para reservar tu dia, solicitar informacion sobre paquetes especiales o resolver cualquier duda.",
     socialLabel: "Siguenos:",
+    style: { backgroundColor: "hsl(var(--card))" },
     mapEmbedUrl:
       "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d4127.830709697052!2d-68.77664612480818!3d18.527819382567138!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8ea8b04866e6e1e9%3A0x6fdb173bb9568f35!2sRancho%20cocory!5e1!3m2!1sen!2sdo!4v1772148411008!5m2!1sen!2sdo",
     contactInfo: [

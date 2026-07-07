@@ -5,6 +5,7 @@ import { Instagram, Heart, MessageCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { EditableText } from "@/components/editor/editor-mode"
+import { EditableSection } from "@/components/editor/editable-section"
 import { useContent } from "@/components/content-provider"
 import { useInstagramFeed } from "@/lib/hooks/use-instagram-feed"
 import type { GalleryFallbackPost, InstagramPost } from "@rancho-cocory/shared"
@@ -88,7 +89,12 @@ export function Gallery() {
         }))
 
   return (
-    <section id="galeria" className="py-20 md:py-28 px-4">
+    <EditableSection
+      sectionId="galeria"
+      stylePath="gallery.style"
+      style={gallery.style}
+      className="py-20 md:py-28 px-4"
+    >
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-14">
           <p className="text-sm font-bold uppercase tracking-widest text-primary mb-2">
@@ -166,6 +172,6 @@ export function Gallery() {
           </Button>
         </div>
       </div>
-    </section>
+    </EditableSection>
   )
 }

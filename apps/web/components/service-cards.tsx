@@ -1,8 +1,10 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
+import { useSearchParams } from "next/navigation"
 import Image from "next/image"
-import { Info } from "lucide-react"
+import { Info, Share2 } from "lucide-react"
+import { buildWhatsAppUrl } from "@rancho-cocory/shared"
 import type { Service } from "@rancho-cocory/shared"
 import { Button } from "@/components/ui/button"
 import {
@@ -26,21 +28,75 @@ import {
   ItemControls,
   ItemEditDialog,
 } from "@/components/editor/editor-mode"
+import { EditableSection } from "@/components/editor/editable-section"
 import { useContent } from "@/components/content-provider"
+import { toast } from "sonner"
+
+function ActivityShareButton({
+  serviceId,
+  title,
+}: {
+  serviceId: string
+  title: string
+}) {
+  async function handleShare() {
+    const url = `${window.location.origin}${window.location.pathname}?actividad=${encodeURIComponent(serviceId)}`
+    try {
+      if (navigator.share) {
+        await navigator.share({ title, text: title, url })
+      } else {
+        await navigator.clipboard.writeText(url)
+        toast.success("Enlace copiado al portapapeles")
+      }
+    } catch {
+      await navigator.clipboard.writeText(url)
+      toast.success("Enlace copiado al portapapeles")
+    }
+  }
+
+  return (
+    <Button
+      type="button"
+      variant="outline"
+      className="rounded-full"
+      onClick={() => void handleShare()}
+    >
+      <Share2 className="size-4" />
+      Compartir
+    </Button>
+  )
+}
 
 function ServiceCard({
   service,
   index,
   onDelete,
+  forceOpen,
+  onForceOpenHandled,
 }: {
   service: Service
   index: number
   onDelete: () => void
+  forceOpen?: boolean
+  onForceOpenHandled?: () => void
 }) {
-  const { updateField } = useContent()
+  const { content, updateField } = useContent()
   const [editOpen, setEditOpen] = useState(false)
   const [detailOpen, setDetailOpen] = useState(false)
   const basePath = `services.items.${index}`
+
+  useEffect(() => {
+    if (forceOpen) {
+      setDetailOpen(true)
+      onForceOpenHandled?.()
+    }
+  }, [forceOpen, onForceOpenHandled])
+
+  const whatsappMessage = `${content.whatsapp.defaultMessage} — Actividad: ${service.title}`
+  const whatsappUrl = buildWhatsAppUrl(
+    content.whatsapp.phone,
+    whatsappMessage,
+  )
 
   async function handleSave(values: Record<string, string>) {
     await updateField(basePath, {
@@ -123,7 +179,12 @@ function ServiceCard({
         title="Editar actividad"
         fields={[
           { key: "title", label: "Título", value: service.title },
-          { key: "image", label: "Imagen (URL)", value: service.image },
+          {
+            key: "image",
+            label: "Imagen",
+            value: service.image,
+            type: "image",
+          },
           { key: "priceLabel", label: "Precio", value: service.priceLabel },
           {
             key: "priceDetail",
@@ -184,10 +245,10 @@ function ServiceCard({
               </ul>
             </div>
           </div>
-          <div className="mt-4">
-            <Button className="w-full rounded-full font-bold" asChild>
+          <div className="mt-4 flex gap-2">
+            <Button className="flex-1 rounded-full font-bold" asChild>
               <a
-                href="https://wa.me/18299621367?text=Hola,%20quiero%20reservar%20en%20Rancho%20Cocory"
+                href={whatsappUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={() => setDetailOpen(false)}
@@ -195,6 +256,7 @@ function ServiceCard({
                 Reservar ahora
               </a>
             </Button>
+            <ActivityShareButton serviceId={service.id} title={service.title} />
           </div>
         </DialogContent>
       </Dialog>
@@ -205,7 +267,24 @@ function ServiceCard({
 export function ServiceCards() {
   const { content, updateField } = useContent()
   const { services } = content
+  const searchParams = useSearchParams()
   const [adding, setAdding] = useState(false)
+  const [deepLinkId, setDeepLinkId] = useState<string | null>(null)
+
+  useEffect(() => {
+    const activityId = searchParams.get("actividad")
+    if (!activityId) return
+
+    const exists = services.items.some((s) => s.id === activityId)
+    if (exists) {
+      setDeepLinkId(activityId)
+      requestAnimationFrame(() => {
+        document
+          .getElementById("actividades")
+          ?.scrollIntoView({ behavior: "smooth" })
+      })
+    }
+  }, [searchParams, services.items])
 
   async function handleAdd(values: Record<string, string>) {
     const newItem: Service = {
@@ -232,7 +311,12 @@ export function ServiceCards() {
   }
 
   return (
-    <section id="actividades" className="py-20 md:py-28 px-4">
+    <EditableSection
+      sectionId="actividades"
+      stylePath="services.style"
+      style={services.style}
+      className="py-20 md:py-28 px-4"
+    >
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-14">
           <p className="text-sm font-bold uppercase tracking-widest text-primary mb-2">
@@ -261,6 +345,8 @@ export function ServiceCards() {
               service={service}
               index={index}
               onDelete={() => void handleDelete(index)}
+              forceOpen={deepLinkId === service.id}
+              onForceOpenHandled={() => setDeepLinkId(null)}
             />
           ))}
         </div>
@@ -272,7 +358,12 @@ export function ServiceCards() {
         title="Nueva actividad"
         fields={[
           { key: "title", label: "Título", value: "" },
-          { key: "image", label: "Imagen (URL)", value: "/images/pool.jpg" },
+          {
+            key: "image",
+            label: "Imagen",
+            value: "/images/pool.jpg",
+            type: "image",
+          },
           { key: "priceLabel", label: "Precio", value: "Desde RD$0" },
           { key: "priceDetail", label: "Detalle de precio", value: "" },
           { key: "description", label: "Descripción", value: "", multiline: true },
@@ -285,6 +376,6 @@ export function ServiceCards() {
         ]}
         onSave={handleAdd}
       />
-    </section>
+    </EditableSection>
   )
 }

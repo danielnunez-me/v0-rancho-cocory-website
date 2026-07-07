@@ -17,4 +17,5 @@ export {
 } from "./content"
 export { fetchGoogleReviews } from "./google-reviews"
 export { fetchInstagramFeed } from "./instagram"
-export { getDb, isFirebaseConfigured } from "./firebase"
+export { getDb, getFirebaseApp, isFirebaseConfigured } from "./firebase"
+export { deleteMediaFromUrl, uploadMedia } from "./storage"

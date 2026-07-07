@@ -22,7 +22,7 @@ export function isFirebaseConfigured(): boolean {
   return getFirebaseCredentials() !== null
 }
 
-function getFirebaseApp(): App {
+export function getFirebaseApp(): App {
   if (globalForFirebase.firebaseApp) {
     return globalForFirebase.firebaseApp
   }
@@ -43,6 +43,7 @@ function getFirebaseApp(): App {
   const app = initializeApp({
     credential: cert(credentials),
     projectId: credentials.projectId,
+    storageBucket: `${credentials.projectId}.appspot.com`,
   })
 
   globalForFirebase.firebaseApp = app

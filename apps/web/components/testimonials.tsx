@@ -5,6 +5,7 @@ import { Star } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { EditableText } from "@/components/editor/editor-mode"
+import { EditableSection } from "@/components/editor/editable-section"
 import { useContent } from "@/components/content-provider"
 import { useGoogleReviews } from "@/lib/hooks/use-google-reviews"
 
@@ -62,7 +63,12 @@ export function Testimonials() {
   const reviews = data.reviews.slice(0, 6)
 
   return (
-    <section className="pt-0 pb-20 md:pb-28 px-4">
+    <EditableSection
+      sectionId="testimonios"
+      stylePath="testimonials.style"
+      style={testimonials.style}
+      className="pt-0 pb-20 md:pb-28 px-4"
+    >
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-14">
           <p className="text-sm font-bold uppercase tracking-widest text-primary mb-2">
@@ -164,6 +170,6 @@ export function Testimonials() {
           </Button>
         </div>
       </div>
-    </section>
+    </EditableSection>
   )
 }

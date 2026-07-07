@@ -1,5 +1,6 @@
 import {
   defaultPageContent,
+  mergeWithDefaults,
   pageContentSchema,
   type PageContent,
 } from "@rancho-cocory/shared"
@@ -19,7 +20,7 @@ export async function getPageContent(): Promise<PageContent> {
   }
 
   const data = snapshot.data()?.data
-  return pageContentSchema.parse(data)
+  return pageContentSchema.parse(mergeWithDefaults(data))
 }
 
 export async function updatePageContent(

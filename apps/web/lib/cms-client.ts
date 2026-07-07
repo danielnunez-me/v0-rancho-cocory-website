@@ -82,3 +82,37 @@ export async function getGoogleReviews(): Promise<
 > {
   return cmsFetch("/google/reviews")
 }
+
+export async function uploadMediaFile(file: File): Promise<{
+  url: string
+  asset: { id: string; url: string; name: string }
+}> {
+  const formData = new FormData()
+  formData.append("file", file)
+
+  const res = await fetch(`${CMS_BASE}/media`, {
+    method: "POST",
+    credentials: "include",
+    body: formData,
+  })
+
+  if (!res.ok) {
+    throw new Error(`Upload failed: ${res.status}`)
+  }
+
+  return res.json()
+}
+
+export async function deleteMediaAsset(id: string): Promise<PageContent> {
+  const res = await fetch(`${CMS_BASE}/media?id=${encodeURIComponent(id)}`, {
+    method: "DELETE",
+    credentials: "include",
+  })
+
+  if (!res.ok) {
+    throw new Error(`Delete failed: ${res.status}`)
+  }
+
+  const data = (await res.json()) as { content: PageContent }
+  return data.content
+}

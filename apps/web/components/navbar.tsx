@@ -6,6 +6,7 @@ import { Menu, X, MapPin, Phone, Clock } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { EditableText } from "@/components/editor/editor-mode"
+import { EditableLink } from "@/components/editor/editable-link"
 import { useContent } from "@/components/content-provider"
 
 function WhatsAppIcon({ className }: { className?: string }) {
@@ -18,40 +19,46 @@ function WhatsAppIcon({ className }: { className?: string }) {
 
 export function Navbar() {
   const { content } = useContent()
-  const { navbar } = content
+  const { navbar, branding } = content
   const [isOpen, setIsOpen] = useState(false)
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-card/90 backdrop-blur-md border-b border-border/50">
       <div className="hidden md:flex items-center justify-between px-6 py-1.5 bg-primary text-primary-foreground text-sm">
         <div className="flex items-center gap-4">
-          <a
+          <EditableLink
+            hrefPath="navbar.addressHref"
+            textPath="navbar.address"
             href={navbar.addressHref}
+            value={navbar.address}
             className="flex items-center gap-1.5 hover:underline"
           >
             <MapPin className="size-3.5" />
-            <EditableText path="navbar.address" value={navbar.address} />
-          </a>
+            {navbar.address}
+          </EditableLink>
         </div>
         <div className="flex items-center gap-4">
           <span className="flex items-center gap-1.5 border-r border-primary-foreground/50 pr-4">
             <Clock className="size-3.5" />
             <EditableText path="navbar.hours" value={navbar.hours} />
           </span>
-          <a
+          <EditableLink
+            hrefPath="navbar.phoneHref"
+            textPath="navbar.phone"
             href={navbar.phoneHref}
+            value={navbar.phone}
             className="flex items-center gap-1.5 hover:underline"
           >
             <Phone className="size-3.5" />
-            <EditableText path="navbar.phone" value={navbar.phone} />
-          </a>
+            {navbar.phone}
+          </EditableLink>
         </div>
       </div>
 
       <nav className="mx-auto flex h-20 w-full max-w-7xl items-center justify-between px-4 md:px-6 lg:px-8">
         <a href="#inicio" className="flex items-center">
           <Image
-            src="/images/logo.png"
+            src={branding.logoUrl}
             alt="Rancho Cocory"
             width={160}
             height={80}
@@ -62,22 +69,20 @@ export function Navbar() {
 
         <div className="hidden md:flex items-center gap-4 lg:gap-6">
           {navbar.navLinks.map((link, index) => (
-            <a
+            <EditableLink
               key={link.href}
+              hrefPath={`navbar.navLinks.${index}.href`}
+              textPath={`navbar.navLinks.${index}.label`}
               href={link.href}
+              value={link.label}
               className="text-sm font-semibold text-foreground/80 hover:text-primary transition-colors"
-            >
-              <EditableText
-                path={`navbar.navLinks.${index}.label`}
-                value={link.label}
-              />
-            </a>
+            />
           ))}
         </div>
 
         <div className="hidden md:flex items-center gap-3">
           <Button className="rounded-full font-bold h-9 px-4 lg:h-11 lg:px-6" asChild>
-            <a href={navbar.whatsappHref} target="_blank">
+            <a href={navbar.whatsappHref} target="_blank" rel="noopener noreferrer">
               <WhatsAppIcon className="size-4" />
               <EditableText path="navbar.reserveLabel" value={navbar.reserveLabel} />
             </a>
@@ -86,7 +91,7 @@ export function Navbar() {
 
         <div className="flex md:hidden items-center gap-2">
           <Button size="sm" className="rounded-full font-bold h-9 px-3 text-xs" asChild>
-            <a href={navbar.whatsappHref} target="_blank">
+            <a href={navbar.whatsappHref} target="_blank" rel="noopener noreferrer">
               <WhatsAppIcon className="size-4" />
               Reservar
             </a>
