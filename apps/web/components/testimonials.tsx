@@ -7,8 +7,31 @@ import { StarRating } from "@/components/ui/star-rating"
 import { EditableText } from "@/components/editor/editor-mode"
 import { EditableLink } from "@/components/editor/editable-link"
 import { EditableSection } from "@/components/editor/editable-section"
+import { buildGoogleMapsPlaceUrl } from "@rancho-cocory/shared"
+import type { GoogleReview } from "@rancho-cocory/shared"
 import { useContent } from "@/components/content-provider"
 import { useGoogleReviews } from "@/lib/hooks/use-google-reviews"
+
+function mergeReviews(
+  apiReviews: GoogleReview[],
+  fallbackReviews: GoogleReview[],
+  minRating: number,
+  maxReviews: number,
+): GoogleReview[] {
+  const merged: GoogleReview[] = []
+  const seen = new Set<string>()
+
+  for (const review of [...apiReviews, ...fallbackReviews]) {
+    if (review.rating < minRating) continue
+    const key = review.id || `${review.authorName}-${review.text.slice(0, 40)}`
+    if (seen.has(key)) continue
+    seen.add(key)
+    merged.push(review)
+    if (merged.length >= maxReviews) break
+  }
+
+  return merged
+}
 
 function GoogleLogo({ className }: { className?: string }) {
   return (
@@ -53,11 +76,17 @@ export function Testimonials() {
     testimonials.ratingSummary ||
     `${displayRating.toFixed(1)} en Google Reviews${reviewCount > 0 ? ` (${reviewCount})` : ""}`
 
-  const reviews = data.reviews
-    .filter((review) => review.rating >= testimonials.minRating)
-    .slice(0, testimonials.maxReviews)
+  const reviews = mergeReviews(
+    data.reviews,
+    testimonials.fallbackReviews,
+    testimonials.minRating,
+    testimonials.maxReviews,
+  )
 
-  const reviewsUrl = testimonials.googleReviewsUrl
+  const reviewsUrl =
+    testimonials.googleReviewsUrl ||
+    data.googleMapsUri ||
+    buildGoogleMapsPlaceUrl(testimonials.googlePlaceId)
 
   return (
     <EditableSection
@@ -97,54 +126,46 @@ export function Testimonials() {
           </div>
         ) : reviews.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-            {reviews.map((review, index) => {
-              const reviewHref = review.reviewUrl ?? reviewsUrl
-              return (
-                <a
-                  key={review.id}
-                  href={reviewHref}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="block group"
-                >
-                  <article className="relative flex h-full flex-col gap-3 rounded-2xl border border-border bg-card p-5 shadow-sm transition-shadow group-hover:shadow-md group-hover:border-primary/30">
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-center gap-3">
-                        {review.profilePhotoUrl ? (
-                          <Image
-                            src={review.profilePhotoUrl}
-                            alt={review.authorName}
-                            width={40}
-                            height={40}
-                            className="size-10 rounded-full object-cover"
-                          />
-                        ) : (
-                          <div
-                            className={`flex size-10 shrink-0 items-center justify-center rounded-full ${index % 2 === 0 ? "bg-primary" : "bg-accent"} text-primary-foreground text-sm font-bold`}
-                            aria-hidden="true"
-                          >
-                            {getInitials(review.authorName)}
-                          </div>
-                        )}
-                        <div>
-                          <p className="text-sm font-bold text-foreground">
-                            {review.authorName}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            {review.relativeTime}
-                          </p>
-                        </div>
+            {reviews.map((review, index) => (
+              <article
+                key={review.id}
+                className="relative flex h-full flex-col gap-3 rounded-2xl border border-border bg-card p-5 shadow-sm"
+              >
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center gap-3">
+                    {review.profilePhotoUrl ? (
+                      <Image
+                        src={review.profilePhotoUrl}
+                        alt={review.authorName}
+                        width={40}
+                        height={40}
+                        className="size-10 rounded-full object-cover"
+                      />
+                    ) : (
+                      <div
+                        className={`flex size-10 shrink-0 items-center justify-center rounded-full ${index % 2 === 0 ? "bg-primary" : "bg-accent"} text-primary-foreground text-sm font-bold`}
+                        aria-hidden="true"
+                      >
+                        {getInitials(review.authorName)}
                       </div>
-                      <GoogleLogo className="size-4 shrink-0 mt-1" />
+                    )}
+                    <div>
+                      <p className="text-sm font-bold text-foreground">
+                        {review.authorName}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {review.relativeTime}
+                      </p>
                     </div>
-                    <StarRating rating={review.rating} sizeClass="size-4" />
-                    <p className="text-sm text-muted-foreground leading-relaxed line-clamp-5">
-                      {review.text}
-                    </p>
-                  </article>
-                </a>
-              )
-            })}
+                  </div>
+                  <GoogleLogo className="size-4 shrink-0 mt-1" />
+                </div>
+                <StarRating rating={review.rating} sizeClass="size-4" />
+                <p className="text-sm text-muted-foreground leading-relaxed line-clamp-5">
+                  {review.text}
+                </p>
+              </article>
+            ))}
           </div>
         ) : (
           <p className="text-center text-muted-foreground">

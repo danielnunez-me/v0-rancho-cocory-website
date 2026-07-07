@@ -1,5 +1,6 @@
 "use client"
 
+import { useEffect } from "react"
 import Image from "next/image"
 import Script from "next/script"
 import { Instagram } from "lucide-react"
@@ -9,10 +10,49 @@ import { EditableSection } from "@/components/editor/editable-section"
 import { useContent } from "@/components/content-provider"
 import { useEditorMode } from "@/components/editor/editor-mode"
 
+function hideElfsightBranding(root: ParentNode) {
+  const selectors = [
+    'a[href*="elfsight.com"]',
+    '[class*="eapps-instagram-feed-posts-grid-load-more"]',
+    '[class*="eapps-widget-toolbar"]',
+    '[class*="eapps-branding"]',
+    ".eapps-widget-toolbar",
+  ]
+
+  for (const selector of selectors) {
+    root.querySelectorAll(selector).forEach((node) => {
+      const el = node as HTMLElement
+      el.style.setProperty("display", "none", "important")
+      el.style.setProperty("visibility", "hidden", "important")
+      el.style.setProperty("height", "0", "important")
+      el.style.setProperty("overflow", "hidden", "important")
+      el.style.setProperty("pointer-events", "none", "important")
+      el.setAttribute("aria-hidden", "true")
+    })
+  }
+}
+
 export function Gallery() {
   const { content } = useContent()
   const { gallery } = content
   const { isEditorMode } = useEditorMode()
+
+  useEffect(() => {
+    const wrapper = document.getElementById("galeria-elfsight-root")
+    if (!wrapper) return
+
+    const run = () => hideElfsightBranding(wrapper)
+    run()
+
+    const observer = new MutationObserver(run)
+    observer.observe(wrapper, { childList: true, subtree: true })
+
+    const interval = window.setInterval(run, 1500)
+    return () => {
+      observer.disconnect()
+      window.clearInterval(interval)
+    }
+  }, [gallery.elfsightAppId])
 
   return (
     <EditableSection
@@ -77,7 +117,10 @@ export function Gallery() {
             />
           </div>
 
-          <div className="elfsight-feed-wrapper w-full min-h-[320px]">
+          <div
+            id="galeria-elfsight-root"
+            className="elfsight-feed-wrapper w-full min-h-[320px] overflow-hidden"
+          >
             <div
               className={`elfsight-app-${gallery.elfsightAppId}`}
               data-elfsight-app-lazy

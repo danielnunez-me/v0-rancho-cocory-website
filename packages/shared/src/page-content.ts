@@ -100,6 +100,16 @@ export const gallerySectionSchema = z.object({
   fallbackPosts: z.array(galleryFallbackPostSchema),
 })
 
+export const googleReviewSchema = z.object({
+  id: z.string(),
+  authorName: z.string(),
+  rating: z.number(),
+  text: z.string(),
+  relativeTime: z.string(),
+  profilePhotoUrl: z.string().optional(),
+  reviewUrl: z.string().optional(),
+})
+
 export const testimonialsSectionSchema = z.object({
   eyebrow: z.string(),
   title: z.string(),
@@ -110,6 +120,7 @@ export const testimonialsSectionSchema = z.object({
   maxReviews: z.number(),
   displayRating: z.number().optional(),
   ratingSummary: z.string().optional(),
+  fallbackReviews: z.array(googleReviewSchema),
   style: sectionStyleSchema.optional(),
 })
 
@@ -271,24 +282,15 @@ export const instagramPostSchema = z.object({
 
 export type InstagramPost = z.infer<typeof instagramPostSchema>
 
-export const googleReviewSchema = z.object({
-  id: z.string(),
-  authorName: z.string(),
-  rating: z.number(),
-  text: z.string(),
-  relativeTime: z.string(),
-  profilePhotoUrl: z.string().optional(),
-  reviewUrl: z.string().optional(),
-})
-
-export type GoogleReview = z.infer<typeof googleReviewSchema>
-
 export const googleReviewsResponseSchema = z.object({
   rating: z.number(),
   userRatingCount: z.number(),
   displayName: z.string(),
+  googleMapsUri: z.string().optional(),
   reviews: z.array(googleReviewSchema),
 })
+
+export type GoogleReview = z.infer<typeof googleReviewSchema>
 
 export type GoogleReviewsResponse = z.infer<typeof googleReviewsResponseSchema>
 

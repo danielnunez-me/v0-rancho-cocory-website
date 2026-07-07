@@ -1,4 +1,5 @@
 import type { GoogleReviewsResponse } from "@rancho-cocory/shared"
+import { buildGoogleMapsPlaceUrl } from "@rancho-cocory/shared"
 import { getCached, getCacheMeta, isCacheFresh, setCache } from "./cache"
 
 const CACHE_KEY = "google_reviews"
@@ -26,7 +27,7 @@ interface GooglePlaceResponse {
 }
 
 function buildPlaceReviewsUrl(placeId: string): string {
-  return `https://www.google.com/maps/search/?api=1&query_place_id=${encodeURIComponent(placeId)}`
+  return buildGoogleMapsPlaceUrl(placeId)
 }
 
 export async function fetchGoogleReviews(): Promise<{
@@ -71,6 +72,7 @@ export async function fetchGoogleReviews(): Promise<{
       displayName: json.displayName?.text ?? "Rancho Cocory",
       rating: json.rating ?? 0,
       userRatingCount: json.userRatingCount ?? 0,
+      googleMapsUri: placeUrl,
       reviews: (json.reviews ?? []).map((review, index) => ({
         id: review.name ?? `review-${index}`,
         authorName: review.authorAttribution?.displayName ?? "Visitante",
