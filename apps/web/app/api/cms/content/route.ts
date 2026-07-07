@@ -1,6 +1,12 @@
 import { NextResponse } from "next/server"
 import { cookies } from "next/headers"
-import { contentPatchSchema } from "@rancho-cocory/shared"
+import {
+  contentPatchSchema,
+  DEFAULT_LOCALE,
+  getLocaleContent,
+  isSupportedLocale,
+  LOCALE_PARAM,
+} from "@rancho-cocory/shared"
 import {
   getPageContent,
   SESSION_COOKIE,
@@ -10,9 +16,16 @@ import {
 
 export const dynamic = "force-dynamic"
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    const content = await getPageContent()
+    const url = new URL(request.url)
+    const langParam = url.searchParams.get(LOCALE_PARAM)
+    const locale =
+      langParam && isSupportedLocale(langParam) ? langParam : DEFAULT_LOCALE
+
+    const content =
+      locale === "es" ? await getPageContent() : await getLocaleContent(locale)
+
     return NextResponse.json(content, {
       headers: {
         "Cache-Control": "no-store, no-cache, must-revalidate",

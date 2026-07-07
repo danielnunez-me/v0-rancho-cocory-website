@@ -2,7 +2,9 @@ import type {
   GoogleReviewsResponse,
   InstagramPost,
   PageContent,
+  SupportedLocale,
 } from "@rancho-cocory/shared"
+import { DEFAULT_LOCALE, getLocaleContent, LOCALE_PARAM } from "@rancho-cocory/shared"
 
 const CMS_BASE = "/api/cms"
 
@@ -27,17 +29,28 @@ async function cmsFetch<T>(
   return res.json() as Promise<T>
 }
 
-export async function getPageContent(): Promise<PageContent> {
+export async function getPageContent(
+  locale: SupportedLocale = DEFAULT_LOCALE,
+): Promise<PageContent> {
   if (typeof window === "undefined") {
     const { unstable_noStore } = await import("next/cache")
     unstable_noStore()
+
+    if (locale !== "es") {
+      return getLocaleContent(locale)
+    }
+
     const { getPageContent: loadContent } = await import(
       "@rancho-cocory/cms-server"
     )
     return loadContent()
   }
 
-  return cmsFetch<PageContent>(`/content?_=${Date.now()}`)
+  const langQuery =
+    locale !== DEFAULT_LOCALE
+      ? `${LOCALE_PARAM}=${encodeURIComponent(locale)}&`
+      : ""
+  return cmsFetch<PageContent>(`/content?${langQuery}_=${Date.now()}`)
 }
 
 export async function updatePageContent(

@@ -1,12 +1,21 @@
 import { Suspense } from "react"
 import type { Metadata, Viewport } from "next"
+import { headers } from "next/headers"
 import { Nunito, Playfair_Display } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
 import { Toaster } from "@/components/ui/sonner"
 import { PageLoader } from "@/components/page-loader"
 import { ContentProvider } from "@/components/content-provider"
 import { getPageContent } from "@/lib/cms-client"
-import { defaultPageContent } from "@rancho-cocory/shared"
+import {
+  buildPageMetadata,
+  DEFAULT_LOCALE,
+  defaultPageContent,
+  getLocaleContent,
+  isSupportedLocale,
+  LOCALE_HEADER,
+  type SupportedLocale,
+} from "@rancho-cocory/shared"
 import "./globals.css"
 
 export const dynamic = "force-dynamic"
@@ -21,39 +30,43 @@ const playfair = Playfair_Display({
   variable: "--font-playfair",
 })
 
-export async function generateMetadata(): Promise<Metadata> {
-  try {
-    const content = await getPageContent()
-    const { seo, branding } = content
+async function getResolvedLocale(): Promise<SupportedLocale> {
+  const headerStore = await headers()
+  const localeHeader = headerStore.get(LOCALE_HEADER)
+  if (localeHeader && isSupportedLocale(localeHeader)) {
+    return localeHeader
+  }
+  return DEFAULT_LOCALE
+}
 
-    return {
-      title: seo.title,
-      description: seo.description,
-      openGraph: {
-        title: seo.openGraphTitle,
-        description: seo.openGraphDescription,
-        type: "website",
-        locale: "es_DO",
-        siteName: seo.openGraphSiteName,
-        url: seo.openGraphUrl,
-        images: [{ url: seo.openGraphImage }],
-      },
-      icons: {
-        icon: branding.faviconUrl,
-        apple: branding.appleTouchIconUrl ?? branding.logoUrl,
-      },
-    }
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getResolvedLocale()
+
+  try {
+    const content =
+      locale === "es"
+        ? await getPageContent(locale)
+        : await getLocaleContent(locale)
+
+    return buildPageMetadata(locale, content.seo, content.branding)
   } catch {
-    return {
-      title: defaultPageContent.seo.title,
-      description: defaultPageContent.seo.description,
-    }
+    return buildPageMetadata(
+      locale,
+      defaultPageContent.seo,
+      defaultPageContent.branding,
+    )
   }
 }
 
 export async function generateViewport(): Promise<Viewport> {
+  const locale = await getResolvedLocale()
+
   try {
-    const content = await getPageContent()
+    const content =
+      locale === "es"
+        ? await getPageContent(locale)
+        : await getLocaleContent(locale)
+
     return {
       themeColor: content.seo.themeColor,
       width: "device-width",
@@ -73,20 +86,25 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  const locale = await getResolvedLocale()
+
   let initialContent
   try {
-    initialContent = await getPageContent()
+    initialContent =
+      locale === "es"
+        ? await getPageContent(locale)
+        : await getLocaleContent(locale)
   } catch {
     initialContent = undefined
   }
 
   return (
     <html
-      lang="es"
+      lang={locale}
       className={`${nunito.variable} ${playfair.variable} scroll-smooth scroll-pt-24 md:scroll-pt-28 bg-background`}
     >
       <body className="font-sans antialiased">
-        <ContentProvider initialContent={initialContent}>
+        <ContentProvider locale={locale} initialContent={initialContent}>
           <PageLoader />
           <Suspense fallback={null}>{children}</Suspense>
           <Toaster />
