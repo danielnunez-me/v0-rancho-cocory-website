@@ -260,6 +260,29 @@ export function SiteSettingsFab() {
                     }
                   />
                   <div className="space-y-2">
+                    <Label>OpenGraph site name (og:site_name)</Label>
+                    <Input
+                      value={content.seo.openGraphSiteName}
+                      onChange={(e) =>
+                        void updateField(
+                          "seo.openGraphSiteName",
+                          e.target.value,
+                        )
+                      }
+                      placeholder="Rancho Cocory"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>OpenGraph URL (og:url)</Label>
+                    <Input
+                      value={content.seo.openGraphUrl}
+                      onChange={(e) =>
+                        void updateField("seo.openGraphUrl", e.target.value)
+                      }
+                      placeholder="https://ranchococory.com"
+                    />
+                  </div>
+                  <div className="space-y-2">
                     <Label>Theme color</Label>
                     <Input
                       type="color"

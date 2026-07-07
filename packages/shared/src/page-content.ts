@@ -200,6 +200,8 @@ export const siteSeoSchema = z.object({
   openGraphTitle: z.string(),
   openGraphDescription: z.string(),
   openGraphImage: z.string(),
+  openGraphSiteName: z.string(),
+  openGraphUrl: z.string(),
   themeColor: z.string(),
 })
 

@@ -34,6 +34,8 @@ export async function generateMetadata(): Promise<Metadata> {
         description: seo.openGraphDescription,
         type: "website",
         locale: "es_DO",
+        siteName: seo.openGraphSiteName,
+        url: seo.openGraphUrl,
         images: [{ url: seo.openGraphImage }],
       },
       icons: {

@@ -43,6 +43,8 @@ export const defaultPageContent: PageContent = {
     openGraphDescription:
       "Diversión familiar en Higuey. Piscinas, excursiones, paintball y mas.",
     openGraphImage: "/images/hero-bg.jpg",
+    openGraphSiteName: "Rancho Cocory",
+    openGraphUrl: "https://ranchococory.com",
     themeColor: "#29aae3",
   },
   whatsapp: {
