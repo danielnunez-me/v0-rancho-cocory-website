@@ -56,10 +56,8 @@ export function ContentProvider({
   }, [])
 
   useEffect(() => {
-    if (!initialContent) {
-      void refreshContent()
-    }
-  }, [initialContent, refreshContent])
+    void refreshContent()
+  }, [refreshContent])
 
   const updateField = useCallback(async (path: string, value: unknown) => {
     try {

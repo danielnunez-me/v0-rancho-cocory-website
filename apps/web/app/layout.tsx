@@ -9,6 +9,8 @@ import { getPageContent } from "@/lib/cms-client"
 import { defaultPageContent } from "@rancho-cocory/shared"
 import "./globals.css"
 
+export const dynamic = "force-dynamic"
+
 const nunito = Nunito({
   subsets: ["latin"],
   variable: "--font-nunito",

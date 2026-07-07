@@ -6,9 +6,13 @@ import type {
 
 const CMS_BASE = "/api/cms"
 
-async function cmsFetch<T>(path: string, init?: RequestInit): Promise<T> {
+async function cmsFetch<T>(
+  path: string,
+  init?: RequestInit & { cache?: RequestCache },
+): Promise<T> {
   const res = await fetch(`${CMS_BASE}${path}`, {
     ...init,
+    cache: init?.cache ?? "no-store",
     credentials: "include",
     headers: {
       "Content-Type": "application/json",
@@ -25,13 +29,15 @@ async function cmsFetch<T>(path: string, init?: RequestInit): Promise<T> {
 
 export async function getPageContent(): Promise<PageContent> {
   if (typeof window === "undefined") {
+    const { unstable_noStore } = await import("next/cache")
+    unstable_noStore()
     const { getPageContent: loadContent } = await import(
       "@rancho-cocory/cms-server"
     )
     return loadContent()
   }
 
-  return cmsFetch<PageContent>("/content")
+  return cmsFetch<PageContent>(`/content?_=${Date.now()}`)
 }
 
 export async function updatePageContent(
@@ -107,6 +113,7 @@ export async function deleteMediaAsset(id: string): Promise<PageContent> {
   const res = await fetch(`${CMS_BASE}/media?id=${encodeURIComponent(id)}`, {
     method: "DELETE",
     credentials: "include",
+    cache: "no-store",
   })
 
   if (!res.ok) {
