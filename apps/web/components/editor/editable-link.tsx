@@ -24,6 +24,7 @@ export function EditableLink({
   target,
   rel,
   children,
+  onNavigate,
 }: {
   hrefPath: string
   textPath: string
@@ -33,6 +34,7 @@ export function EditableLink({
   target?: string
   rel?: string
   children?: React.ReactNode
+  onNavigate?: () => void
 }) {
   const { isEditorMode } = useEditorMode()
   const { updateField } = useContent()
@@ -46,10 +48,13 @@ export function EditableLink({
   }, [value, href, open])
 
   function handleClick(e: React.MouseEvent<HTMLAnchorElement>) {
-    if (!isEditorMode) return
-    e.preventDefault()
-    e.stopPropagation()
-    setOpen(true)
+    if (isEditorMode) {
+      e.preventDefault()
+      e.stopPropagation()
+      setOpen(true)
+      return
+    }
+    onNavigate?.()
   }
 
   return (

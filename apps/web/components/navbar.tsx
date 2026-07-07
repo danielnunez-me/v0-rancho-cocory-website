@@ -93,7 +93,7 @@ export function Navbar() {
           <Button size="sm" className="rounded-full font-bold h-9 px-3 text-xs" asChild>
             <a href={navbar.whatsappHref} target="_blank" rel="noopener noreferrer">
               <WhatsAppIcon className="size-4" />
-              Reservar
+              <EditableText path="navbar.reserveLabel" value={navbar.reserveLabel} />
             </a>
           </Button>
           <Button
@@ -114,15 +114,16 @@ export function Navbar() {
         )}
       >
         <div className="flex flex-col gap-1 px-4 py-4 bg-card">
-          {navbar.navLinks.map((link) => (
-            <a
+          {navbar.navLinks.map((link, index) => (
+            <EditableLink
               key={link.href}
+              hrefPath={`navbar.navLinks.${index}.href`}
+              textPath={`navbar.navLinks.${index}.label`}
               href={link.href}
+              value={link.label}
               className="text-sm font-semibold text-foreground/80 hover:text-primary transition-colors py-2.5 px-3 rounded-lg hover:bg-muted"
-              onClick={() => setIsOpen(false)}
-            >
-              {link.label}
-            </a>
+              onNavigate={() => setIsOpen(false)}
+            />
           ))}
         </div>
       </div>

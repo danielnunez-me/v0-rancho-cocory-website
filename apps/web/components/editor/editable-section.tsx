@@ -36,24 +36,32 @@ export function EditableSection({
   style,
   className,
   children,
+  linkedImagePath,
+  linkedImage,
+  editButtonClassName,
 }: {
   sectionId: string
   stylePath: string
   style?: SectionStyle
   className?: string
   children: ReactNode
+  linkedImagePath?: string
+  linkedImage?: string
+  editButtonClassName?: string
 }) {
   const { isEditorMode } = useEditorMode()
   const { updateField } = useContent()
   const [open, setOpen] = useState(false)
   const [draftColor, setDraftColor] = useState(style?.backgroundColor ?? "")
-  const [draftImage, setDraftImage] = useState(style?.backgroundImage ?? "")
+  const [draftImage, setDraftImage] = useState(
+    linkedImage ?? style?.backgroundImage ?? "",
+  )
 
   const inlineStyle = useMemo(() => sectionStyleToCss(style), [style])
 
   function openEditor() {
     setDraftColor(style?.backgroundColor ?? "")
-    setDraftImage(style?.backgroundImage ?? "")
+    setDraftImage(linkedImage ?? style?.backgroundImage ?? "")
     setOpen(true)
   }
 
@@ -62,6 +70,9 @@ export function EditableSection({
       backgroundColor: draftColor || undefined,
       backgroundImage: draftImage || undefined,
     })
+    if (linkedImagePath && draftImage) {
+      await updateField(linkedImagePath, draftImage)
+    }
     setOpen(false)
   }
 
@@ -75,7 +86,10 @@ export function EditableSection({
         <button
           type="button"
           onClick={openEditor}
-          className="absolute top-4 right-4 z-30 flex items-center gap-1.5 rounded-full bg-foreground/80 px-3 py-1.5 text-xs text-background shadow-lg hover:bg-foreground transition-colors"
+          className={cn(
+            "absolute top-4 right-4 z-30 flex items-center gap-1.5 rounded-full bg-foreground/80 px-3 py-1.5 text-xs text-background shadow-lg hover:bg-foreground transition-colors",
+            editButtonClassName,
+          )}
         >
           <Paintbrush className="size-3.5" />
           Editar fondo

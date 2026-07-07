@@ -95,6 +95,7 @@ export const gallerySectionSchema = z.object({
   profileImage: z.string(),
   instagramUrl: z.string(),
   followLabel: z.string(),
+  elfsightAppId: z.string(),
   style: sectionStyleSchema.optional(),
   fallbackPosts: z.array(galleryFallbackPostSchema),
 })
@@ -105,6 +106,10 @@ export const testimonialsSectionSchema = z.object({
   googlePlaceId: z.string(),
   googleReviewsUrl: z.string(),
   viewAllLabel: z.string(),
+  minRating: z.number(),
+  maxReviews: z.number(),
+  displayRating: z.number().optional(),
+  ratingSummary: z.string().optional(),
   style: sectionStyleSchema.optional(),
 })
 
@@ -273,6 +278,7 @@ export const googleReviewSchema = z.object({
   text: z.string(),
   relativeTime: z.string(),
   profilePhotoUrl: z.string().optional(),
+  reviewUrl: z.string().optional(),
 })
 
 export type GoogleReview = z.infer<typeof googleReviewSchema>

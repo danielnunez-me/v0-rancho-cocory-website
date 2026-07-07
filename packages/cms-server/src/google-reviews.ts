@@ -12,14 +12,21 @@ interface GoogleReviewRaw {
   authorAttribution?: {
     displayName?: string
     photoUri?: string
+    uri?: string
   }
+  googleMapsUri?: string
 }
 
 interface GooglePlaceResponse {
   displayName?: { text?: string }
   rating?: number
   userRatingCount?: number
+  googleMapsUri?: string
   reviews?: GoogleReviewRaw[]
+}
+
+function buildPlaceReviewsUrl(placeId: string): string {
+  return `https://www.google.com/maps/search/?api=1&query_place_id=${encodeURIComponent(placeId)}`
 }
 
 export async function fetchGoogleReviews(): Promise<{
@@ -47,7 +54,8 @@ export async function fetchGoogleReviews(): Promise<{
       headers: {
         "Content-Type": "application/json",
         "X-Goog-Api-Key": apiKey,
-        "X-Goog-FieldMask": "displayName,rating,userRatingCount,reviews",
+        "X-Goog-FieldMask":
+          "displayName,rating,userRatingCount,googleMapsUri,reviews",
       },
     })
 
@@ -56,6 +64,9 @@ export async function fetchGoogleReviews(): Promise<{
     }
 
     const json = (await res.json()) as GooglePlaceResponse
+    const placeUrl =
+      json.googleMapsUri ?? buildPlaceReviewsUrl(placeId)
+
     const data: GoogleReviewsResponse = {
       displayName: json.displayName?.text ?? "Rancho Cocory",
       rating: json.rating ?? 0,
@@ -67,6 +78,10 @@ export async function fetchGoogleReviews(): Promise<{
         text: review.text?.text ?? "",
         relativeTime: review.relativePublishTimeDescription ?? "",
         profilePhotoUrl: review.authorAttribution?.photoUri,
+        reviewUrl:
+          review.googleMapsUri ??
+          review.authorAttribution?.uri ??
+          placeUrl,
       })),
     }
 

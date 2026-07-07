@@ -249,6 +249,7 @@ export const defaultPageContent: PageContent = {
     profileImage: "/images/logo.png",
     instagramUrl: "https://instagram.com/ranchococory",
     followLabel: "Seguir en Instagram",
+    elfsightAppId: "3f9c7761-e0fc-4572-951e-7561e3f31ded",
     fallbackPosts: [
       {
         id: "ig-fallback-1",
@@ -300,8 +301,10 @@ export const defaultPageContent: PageContent = {
     style: {},
     googlePlaceId: "ChIJ6eHmZkhIqowRNY9WuTsX2289",
     googleReviewsUrl:
-      "https://search.google.com/local/reviews?placeid=ChIJ6eHmZkhIqowRNY9WuTsX2289",
+      "https://www.google.com/maps/search/?api=1&query_place_id=ChIJ6eHmZkhIqowRNY9WuTsX2289",
     viewAllLabel: "Ver todas las resenas en Google",
+    minRating: 3,
+    maxReviews: 6,
   },
   faq: {
     eyebrow: "Preguntas frecuentes",

@@ -3,7 +3,8 @@
 import Image from "next/image"
 import { MapPin, ChevronDown } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { EditableText, EditableImage } from "@/components/editor/editor-mode"
+import { EditableText } from "@/components/editor/editor-mode"
+import { EditableSection } from "@/components/editor/editable-section"
 import { useContent } from "@/components/content-provider"
 
 export function Hero() {
@@ -11,8 +12,13 @@ export function Hero() {
   const { hero } = content
 
   return (
-    <section
-      id="inicio"
+    <EditableSection
+      sectionId="inicio"
+      stylePath="hero.style"
+      style={hero.style}
+      linkedImagePath="hero.backgroundImage"
+      linkedImage={hero.backgroundImage}
+      editButtonClassName="top-20 md:top-24"
       className="relative isolate min-h-[100dvh] overflow-hidden"
     >
       <div className="absolute inset-0 z-0 min-h-[100dvh]">
@@ -24,12 +30,6 @@ export function Hero() {
           className="object-cover object-center"
           priority
           quality={75}
-        />
-        <EditableImage
-          path="hero.backgroundImage"
-          src={hero.backgroundImage}
-          alt="Hero background"
-          className="top-4 right-4"
         />
       </div>
 
@@ -85,6 +85,6 @@ export function Hero() {
       >
         <ChevronDown className="size-8" />
       </a>
-    </section>
+    </EditableSection>
   )
 }

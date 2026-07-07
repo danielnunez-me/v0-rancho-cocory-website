@@ -6,9 +6,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogClose,
 } from "@/components/ui/dialog"
-import { X } from "lucide-react"
 import { EditableHtml } from "@/components/editor/editable-html"
 import { openSiteSettings } from "@/components/editor/site-settings-modal"
 import { useContent } from "@/components/content-provider"
@@ -39,10 +37,6 @@ export function PrivacyPolicyModal({
           value={doc.content}
           className="text-sm text-muted-foreground leading-relaxed"
         />
-        <DialogClose className="absolute top-3 right-3 rounded-full p-1.5 hover:bg-muted transition-colors">
-          <X className="size-4 text-muted-foreground" />
-          <span className="sr-only">Cerrar</span>
-        </DialogClose>
       </DialogContent>
     </Dialog>
   )
@@ -73,10 +67,6 @@ export function TermsConditionsModal({
           value={doc.content}
           className="text-sm text-muted-foreground leading-relaxed"
         />
-        <DialogClose className="absolute top-3 right-3 rounded-full p-1.5 hover:bg-muted transition-colors">
-          <X className="size-4 text-muted-foreground" />
-          <span className="sr-only">Cerrar</span>
-        </DialogClose>
       </DialogContent>
     </Dialog>
   )

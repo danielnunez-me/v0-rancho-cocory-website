@@ -106,3 +106,14 @@
 html {
   scroll-behavior: smooth;
 }
+
+/* Elfsight Instagram feed — hide load more + branding */
+.elfsight-feed-wrapper .eapps-instagram-feed-posts-grid-load-more-container,
+.elfsight-feed-wrapper .eapps-instagram-feed-posts-grid-load-more-enabled,
+.elfsight-feed-wrapper a[href*="elfsight.com"] {
+  display: none !important;
+  visibility: hidden !important;
+  height: 0 !important;
+  overflow: hidden !important;
+  pointer-events: none !important;
+}
