@@ -1,17 +1,41 @@
 import { NextResponse } from "next/server"
 import { cookies } from "next/headers"
-import { contentPatchSchema } from "@rancho-cocory/shared"
 import {
+  contentPatchSchema,
+  DEFAULT_LOCALE,
+  isValidLocaleCode,
+  LOCALE_PARAM,
+} from "@rancho-cocory/shared"
+import {
+  getLocalizedPageContent,
   getPageContent,
   SESSION_COOKIE,
   updatePageContent,
   validateSession,
 } from "@rancho-cocory/cms-server"
 
-export async function GET() {
+export const dynamic = "force-dynamic"
+
+export async function GET(request: Request) {
   try {
-    const content = await getPageContent()
-    return NextResponse.json(content)
+    const url = new URL(request.url)
+    const langParam = url.searchParams.get(LOCALE_PARAM)
+    const hasEditKey = url.searchParams.has("edit_key")
+
+    if (hasEditKey) {
+      const content = await getPageContent()
+      return NextResponse.json(content, {
+        headers: { "Cache-Control": "no-store, no-cache, must-revalidate" },
+      })
+    }
+
+    const locale =
+      langParam && isValidLocaleCode(langParam) ? langParam : DEFAULT_LOCALE
+
+    const content = await getLocalizedPageContent(locale)
+    return NextResponse.json(content, {
+      headers: { "Cache-Control": "no-store, no-cache, must-revalidate" },
+    })
   } catch (error) {
     console.error("Failed to load page content:", error)
     return NextResponse.json({ error: "Content not found" }, { status: 404 })
@@ -39,7 +63,9 @@ export async function PATCH(request: Request) {
 
   try {
     const content = await updatePageContent(parsed.data.path, parsed.data.value)
-    return NextResponse.json(content)
+    return NextResponse.json(content, {
+      headers: { "Cache-Control": "no-store, no-cache, must-revalidate" },
+    })
   } catch (error) {
     console.error("Failed to update page content:", error)
     return NextResponse.json({ error: "Update failed" }, { status: 500 })

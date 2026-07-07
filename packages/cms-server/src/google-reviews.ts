@@ -1,4 +1,5 @@
 import type { GoogleReviewsResponse } from "@rancho-cocory/shared"
+import { buildGoogleMapsPlaceUrl } from "@rancho-cocory/shared"
 import { getCached, getCacheMeta, isCacheFresh, setCache } from "./cache"
 
 const CACHE_KEY = "google_reviews"
@@ -12,14 +13,21 @@ interface GoogleReviewRaw {
   authorAttribution?: {
     displayName?: string
     photoUri?: string
+    uri?: string
   }
+  googleMapsUri?: string
 }
 
 interface GooglePlaceResponse {
   displayName?: { text?: string }
   rating?: number
   userRatingCount?: number
+  googleMapsUri?: string
   reviews?: GoogleReviewRaw[]
+}
+
+function buildPlaceReviewsUrl(placeId: string): string {
+  return buildGoogleMapsPlaceUrl(placeId)
 }
 
 export async function fetchGoogleReviews(): Promise<{
@@ -47,7 +55,8 @@ export async function fetchGoogleReviews(): Promise<{
       headers: {
         "Content-Type": "application/json",
         "X-Goog-Api-Key": apiKey,
-        "X-Goog-FieldMask": "displayName,rating,userRatingCount,reviews",
+        "X-Goog-FieldMask":
+          "displayName,rating,userRatingCount,googleMapsUri,reviews",
       },
     })
 
@@ -56,10 +65,14 @@ export async function fetchGoogleReviews(): Promise<{
     }
 
     const json = (await res.json()) as GooglePlaceResponse
+    const placeUrl =
+      json.googleMapsUri ?? buildPlaceReviewsUrl(placeId)
+
     const data: GoogleReviewsResponse = {
       displayName: json.displayName?.text ?? "Rancho Cocory",
       rating: json.rating ?? 0,
       userRatingCount: json.userRatingCount ?? 0,
+      googleMapsUri: placeUrl,
       reviews: (json.reviews ?? []).map((review, index) => ({
         id: review.name ?? `review-${index}`,
         authorName: review.authorAttribution?.displayName ?? "Visitante",
@@ -67,6 +80,10 @@ export async function fetchGoogleReviews(): Promise<{
         text: review.text?.text ?? "",
         relativeTime: review.relativePublishTimeDescription ?? "",
         profilePhotoUrl: review.authorAttribution?.photoUri,
+        reviewUrl:
+          review.googleMapsUri ??
+          review.authorAttribution?.uri ??
+          placeUrl,
       })),
     }
 

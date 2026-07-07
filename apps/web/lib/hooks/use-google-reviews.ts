@@ -28,6 +28,7 @@ export function useGoogleReviews() {
             rating: response.rating,
             userRatingCount: response.userRatingCount,
             displayName: response.displayName,
+            googleMapsUri: response.googleMapsUri,
             reviews: response.reviews,
           })
           setSource(response.source)

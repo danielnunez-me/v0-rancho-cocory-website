@@ -2,11 +2,36 @@
 
 import Image from "next/image"
 import { Star } from "lucide-react"
-import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
+import { StarRating } from "@/components/ui/star-rating"
 import { EditableText } from "@/components/editor/editor-mode"
+import { EditableLink } from "@/components/editor/editable-link"
+import { EditableSection } from "@/components/editor/editable-section"
+import { buildGoogleMapsPlaceUrl } from "@rancho-cocory/shared"
+import type { GoogleReview } from "@rancho-cocory/shared"
 import { useContent } from "@/components/content-provider"
 import { useGoogleReviews } from "@/lib/hooks/use-google-reviews"
+
+function mergeReviews(
+  apiReviews: GoogleReview[],
+  fallbackReviews: GoogleReview[],
+  minRating: number,
+  maxReviews: number,
+): GoogleReview[] {
+  const merged: GoogleReview[] = []
+  const seen = new Set<string>()
+
+  for (const review of [...apiReviews, ...fallbackReviews]) {
+    if (review.rating < minRating) continue
+    const key = review.id || `${review.authorName}-${review.text.slice(0, 40)}`
+    if (seen.has(key)) continue
+    seen.add(key)
+    merged.push(review)
+    if (merged.length >= maxReviews) break
+  }
+
+  return merged
+}
 
 function GoogleLogo({ className }: { className?: string }) {
   return (
@@ -31,19 +56,6 @@ function GoogleLogo({ className }: { className?: string }) {
   )
 }
 
-function ReviewStars({ rating }: { rating: number }) {
-  return (
-    <div className="flex gap-0.5" aria-label={`${rating} de 5 estrellas`}>
-      {[1, 2, 3, 4, 5].map((s) => (
-        <Star
-          key={s}
-          className={`size-4 ${s <= rating ? "fill-accent text-accent" : "fill-muted text-muted"}`}
-        />
-      ))}
-    </div>
-  )
-}
-
 function getInitials(name: string) {
   return name
     .split(" ")
@@ -57,40 +69,58 @@ export function Testimonials() {
   const { testimonials } = content
   const { data, isLoading } = useGoogleReviews()
 
-  const rating = data.rating || 4.5
+  const apiRating = data.rating || 0
   const reviewCount = data.userRatingCount || 0
-  const reviews = data.reviews.slice(0, 6)
+  const displayRating = testimonials.displayRating ?? apiRating
+  const ratingSummary =
+    testimonials.ratingSummary ||
+    `${displayRating.toFixed(1)} en Google Reviews${reviewCount > 0 ? ` (${reviewCount})` : ""}`
+
+  const reviews = mergeReviews(
+    data.reviews,
+    testimonials.fallbackReviews,
+    testimonials.minRating,
+    testimonials.maxReviews,
+  )
+
+  const reviewsUrl =
+    testimonials.googleReviewsUrl ||
+    data.googleMapsUri ||
+    buildGoogleMapsPlaceUrl(testimonials.googlePlaceId)
 
   return (
-    <section className="pt-0 pb-20 md:pb-28 px-4">
+    <EditableSection
+      sectionId="testimonios"
+      stylePath="testimonials.style"
+      style={testimonials.style}
+      className="pt-0 pb-20 md:pb-28 px-4"
+    >
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-14">
           <p className="text-sm font-bold uppercase tracking-widest text-primary mb-2">
-            <EditableText path="testimonials.eyebrow" value={testimonials.eyebrow} />
+            <EditableText
+              path="testimonials.eyebrow"
+              value={testimonials.eyebrow}
+            />
           </p>
           <h2 className="text-3xl md:text-4xl font-bold text-foreground font-serif text-balance">
             <EditableText path="testimonials.title" value={testimonials.title} />
           </h2>
-          <div className="flex items-center justify-center gap-2 mt-3">
+          <div className="flex items-center justify-center gap-2 mt-3 flex-wrap">
             <GoogleLogo className="size-5" />
-            <div className="flex gap-0.5">
-              {[1, 2, 3, 4, 5].map((s) => (
-                <Star
-                  key={s}
-                  className={`size-5 ${s <= Math.round(rating) ? "fill-accent text-accent" : "fill-accent/50 text-accent/50"}`}
-                />
-              ))}
-            </div>
+            <StarRating rating={displayRating} sizeClass="size-5" />
             <span className="text-muted-foreground text-sm font-semibold">
-              {rating.toFixed(1)} en Google Reviews
-              {reviewCount > 0 && ` (${reviewCount})`}
+              <EditableText
+                path="testimonials.ratingSummary"
+                value={ratingSummary}
+              />
             </span>
           </div>
         </div>
 
         {isLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-            {Array.from({ length: 6 }).map((_, i) => (
+            {Array.from({ length: testimonials.maxReviews }).map((_, i) => (
               <Skeleton key={i} className="h-48 rounded-2xl" />
             ))}
           </div>
@@ -99,7 +129,7 @@ export function Testimonials() {
             {reviews.map((review, index) => (
               <article
                 key={review.id}
-                className="relative flex flex-col gap-3 rounded-2xl border border-border bg-card p-5 shadow-sm"
+                className="relative flex h-full flex-col gap-3 rounded-2xl border border-border bg-card p-5 shadow-sm"
               >
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
@@ -130,8 +160,8 @@ export function Testimonials() {
                   </div>
                   <GoogleLogo className="size-4 shrink-0 mt-1" />
                 </div>
-                <ReviewStars rating={review.rating} />
-                <p className="text-sm text-muted-foreground leading-relaxed">
+                <StarRating rating={review.rating} sizeClass="size-4" />
+                <p className="text-sm text-muted-foreground leading-relaxed line-clamp-5">
                   {review.text}
                 </p>
               </article>
@@ -139,31 +169,26 @@ export function Testimonials() {
           </div>
         ) : (
           <p className="text-center text-muted-foreground">
-            Las reseñas de Google se mostrarán cuando configures GOOGLE_PLACES_API_KEY.
+            Las reseñas de Google se mostrarán cuando configures
+            GOOGLE_PLACES_API_KEY.
           </p>
         )}
 
         <div className="text-center mt-8">
-          <Button
-            variant="outline"
-            size="lg"
-            className="rounded-full font-bold border-primary text-primary hover:bg-primary hover:text-primary-foreground"
-            asChild
+          <EditableLink
+            hrefPath="testimonials.googleReviewsUrl"
+            textPath="testimonials.viewAllLabel"
+            href={reviewsUrl}
+            value={testimonials.viewAllLabel}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center justify-center gap-2 rounded-full font-bold border border-primary text-primary hover:bg-primary hover:text-primary-foreground h-11 px-8 text-sm transition-colors"
           >
-            <a
-              href={testimonials.googleReviewsUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <Star className="size-5" />
-              <EditableText
-                path="testimonials.viewAllLabel"
-                value={testimonials.viewAllLabel}
-              />
-            </a>
-          </Button>
+            <Star className="size-5" />
+            {testimonials.viewAllLabel}
+          </EditableLink>
         </div>
       </div>
-    </section>
+    </EditableSection>
   )
 }

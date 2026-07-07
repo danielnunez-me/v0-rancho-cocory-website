@@ -8,6 +8,7 @@ import {
   ItemControls,
   ItemEditDialog,
 } from "@/components/editor/editor-mode"
+import { EditableSection } from "@/components/editor/editable-section"
 import { useContent } from "@/components/content-provider"
 import { getExperienceIcon } from "@/lib/icon-map"
 
@@ -100,7 +101,12 @@ export function Experiences() {
   }
 
   return (
-    <section id="experiencias" className="py-20 md:py-28 px-4 bg-card">
+    <EditableSection
+      sectionId="experiencias"
+      stylePath="experiences.style"
+      style={experiences.style}
+      className="py-20 md:py-28 px-4"
+    >
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-14">
           <p className="text-sm font-bold uppercase tracking-widest text-primary mb-2">
@@ -145,6 +151,6 @@ export function Experiences() {
         ]}
         onSave={handleAdd}
       />
-    </section>
+    </EditableSection>
   )
 }

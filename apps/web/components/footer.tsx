@@ -3,11 +3,12 @@
 import Image from "next/image"
 import { LegalLinks } from "@/components/legal-modals"
 import { EditableText } from "@/components/editor/editor-mode"
+import { EditableLink } from "@/components/editor/editable-link"
 import { useContent } from "@/components/content-provider"
 
 export function Footer() {
   const { content } = useContent()
-  const { footer } = content
+  const { footer, branding } = content
 
   return (
     <footer className="bg-foreground text-background py-8 px-4">
@@ -16,7 +17,7 @@ export function Footer() {
           <div>
             <div className="mb-3">
               <Image
-                src="/images/logo.png"
+                src={branding.logoUrl}
                 alt="Rancho Cocory"
                 width={240}
                 height={120}
@@ -34,16 +35,14 @@ export function Footer() {
             </h3>
             <nav className="flex flex-col gap-2">
               {footer.navLinks.map((link, index) => (
-                <a
+                <EditableLink
                   key={link.href}
+                  hrefPath={`footer.navLinks.${index}.href`}
+                  textPath={`footer.navLinks.${index}.label`}
                   href={link.href}
+                  value={link.label}
                   className="text-sm text-background/60 hover:text-background transition-colors"
-                >
-                  <EditableText
-                    path={`footer.navLinks.${index}.label`}
-                    value={link.label}
-                  />
-                </a>
+                />
               ))}
             </nav>
           </div>
@@ -59,18 +58,20 @@ export function Footer() {
               <p>
                 <EditableText path="footer.addressLine2" value={footer.addressLine2} />
               </p>
-              <a
+              <EditableLink
+                hrefPath="footer.phoneHref"
+                textPath="footer.phone"
                 href={footer.phoneHref}
+                value={footer.phone}
                 className="hover:text-background transition-colors"
-              >
-                <EditableText path="footer.phone" value={footer.phone} />
-              </a>
-              <a
+              />
+              <EditableLink
+                hrefPath="footer.emailHref"
+                textPath="footer.email"
                 href={footer.emailHref}
+                value={footer.email}
                 className="hover:text-background transition-colors"
-              >
-                <EditableText path="footer.email" value={footer.email} />
-              </a>
+              />
             </div>
           </div>
         </div>
@@ -78,14 +79,15 @@ export function Footer() {
         <div className="border-t border-background/10 pt-4 flex flex-col md:flex-row items-center justify-between gap-3">
           <p className="text-xs text-background/40">
             <EditableText path="footer.copyright" value={footer.copyright} />{" "}
-            <a
+            <EditableLink
+              hrefPath="footer.creditUrl"
+              textPath="footer.creditName"
               href={footer.creditUrl}
+              value={footer.creditName}
               target="_blank"
               rel="noopener noreferrer"
               className="hover:underline font-medium"
-            >
-              <EditableText path="footer.creditName" value={footer.creditName} />
-            </a>
+            />
             .
           </p>
           <div className="flex gap-4">

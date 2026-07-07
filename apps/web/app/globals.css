@@ -106,3 +106,23 @@
 html {
   scroll-behavior: smooth;
 }
+
+/* Elfsight Instagram feed — hide load more + branding */
+#galeria-elfsight-root a[href*="elfsight.com"],
+#galeria-elfsight-root a[href*="elfsightcdn.com"],
+.elfsight-feed-wrapper a[href*="elfsight.com"],
+.elfsight-feed-wrapper a[href*="elfsightcdn.com"],
+[class*="elfsight-app"] a[href*="elfsight.com"],
+[class*="eapps-instagram-feed-posts-grid-load-more"],
+[class*="eapps-widget-toolbar"],
+[class*="eapps-branding"] {
+  display: none !important;
+  visibility: hidden !important;
+  height: 0 !important;
+  max-height: 0 !important;
+  overflow: hidden !important;
+  pointer-events: none !important;
+  opacity: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}

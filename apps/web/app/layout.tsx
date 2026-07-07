@@ -1,12 +1,22 @@
 import { Suspense } from "react"
 import type { Metadata, Viewport } from "next"
+import { headers } from "next/headers"
 import { Nunito, Playfair_Display } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
 import { Toaster } from "@/components/ui/sonner"
 import { PageLoader } from "@/components/page-loader"
 import { ContentProvider } from "@/components/content-provider"
 import { getPageContent } from "@/lib/cms-client"
+import {
+  buildPageMetadata,
+  defaultPageContent,
+  isDefaultLocale,
+  isValidLocaleCode,
+  LOCALE_HEADER,
+} from "@rancho-cocory/shared"
 import "./globals.css"
+
+export const dynamic = "force-dynamic"
 
 const nunito = Nunito({
   subsets: ["latin"],
@@ -18,34 +28,51 @@ const playfair = Playfair_Display({
   variable: "--font-playfair",
 })
 
-export const metadata: Metadata = {
-  title: "Rancho Cocory | Parque Recreativo en Higuey, Republica Dominicana",
-  description:
-    "Rancho Cocory es el parque recreativo familiar en Higuey con piscinas, excursiones en buggy, paseos a caballo, paintball y mucho mas. Desde RD$350 por adulto.",
-  keywords: [
-    "Rancho Cocory",
-    "parque recreativo",
-    "Higuey",
-    "Republica Dominicana",
-    "piscinas",
-    "buggy",
-    "paintball",
-    "pasadia",
-    "excursiones",
-  ],
-  openGraph: {
-    title: "Rancho Cocory | Parque Recreativo en Higuey",
-    description:
-      "Diversión familiar en Higuey. Piscinas, excursiones, paintball y mas.",
-    type: "website",
-    locale: "es_DO",
-  },
+async function getResolvedLocale(): Promise<string> {
+  const headerStore = await headers()
+  const localeHeader = headerStore.get(LOCALE_HEADER)
+  if (!localeHeader) return "es"
+  if (isDefaultLocale(localeHeader)) return "es"
+  if (isValidLocaleCode(localeHeader)) return localeHeader
+  return "es"
 }
 
-export const viewport: Viewport = {
-  themeColor: "#29aae3",
-  width: "device-width",
-  initialScale: 1,
+async function loadContentForLocale(locale: string) {
+  return getPageContent(locale)
+}
+
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getResolvedLocale()
+
+  try {
+    const content = await loadContentForLocale(locale)
+    return buildPageMetadata(locale, content.seo, content.branding)
+  } catch {
+    return buildPageMetadata(
+      locale,
+      defaultPageContent.seo,
+      defaultPageContent.branding,
+    )
+  }
+}
+
+export async function generateViewport(): Promise<Viewport> {
+  const locale = await getResolvedLocale()
+
+  try {
+    const content = await loadContentForLocale(locale)
+    return {
+      themeColor: content.seo.themeColor,
+      width: "device-width",
+      initialScale: 1,
+    }
+  } catch {
+    return {
+      themeColor: defaultPageContent.seo.themeColor,
+      width: "device-width",
+      initialScale: 1,
+    }
+  }
 }
 
 export default async function RootLayout({
@@ -53,20 +80,22 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  const locale = await getResolvedLocale()
+
   let initialContent
   try {
-    initialContent = await getPageContent()
+    initialContent = await loadContentForLocale(locale)
   } catch {
     initialContent = undefined
   }
 
   return (
     <html
-      lang="es"
+      lang={locale}
       className={`${nunito.variable} ${playfair.variable} scroll-smooth scroll-pt-24 md:scroll-pt-28 bg-background`}
     >
       <body className="font-sans antialiased">
-        <ContentProvider initialContent={initialContent}>
+        <ContentProvider locale={locale} initialContent={initialContent}>
           <PageLoader />
           <Suspense fallback={null}>{children}</Suspense>
           <Toaster />

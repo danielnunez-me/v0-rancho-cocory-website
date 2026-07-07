@@ -15,6 +15,22 @@ export {
   seedPageContent,
   updatePageContent,
 } from "./content"
+export {
+  getLocaleConfig,
+  getEnabledTranslationLocales,
+  isTranslationLocaleEnabled,
+  addTranslationLocale,
+  removeTranslationLocale,
+  getLocaleTranslations,
+  getLocalizedPageContent,
+  updateLocaleTranslation,
+} from "./translations"
 export { fetchGoogleReviews } from "./google-reviews"
 export { fetchInstagramFeed } from "./instagram"
-export { getDb, isFirebaseConfigured } from "./firebase"
+export {
+  getDb,
+  getFirebaseApp,
+  getStorageBucketName,
+  isFirebaseConfigured,
+} from "./firebase"
+export { deleteMediaFromUrl, uploadMedia } from "./storage"
