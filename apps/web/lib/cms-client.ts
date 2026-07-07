@@ -1,8 +1,11 @@
 import type {
   GoogleReviewsResponse,
   InstagramPost,
+  LocaleConfig,
+  LocaleStrings,
   PageContent,
 } from "@rancho-cocory/shared"
+import { DEFAULT_LOCALE, LOCALE_PARAM } from "@rancho-cocory/shared"
 
 const CMS_BASE = "/api/cms"
 
@@ -27,17 +30,76 @@ async function cmsFetch<T>(
   return res.json() as Promise<T>
 }
 
-export async function getPageContent(): Promise<PageContent> {
+export async function getPageContent(
+  locale: string = DEFAULT_LOCALE,
+  options?: { editKey?: string },
+): Promise<PageContent> {
   if (typeof window === "undefined") {
     const { unstable_noStore } = await import("next/cache")
     unstable_noStore()
-    const { getPageContent: loadContent } = await import(
-      "@rancho-cocory/cms-server"
-    )
-    return loadContent()
+
+    if (options?.editKey || locale === "es") {
+      const { getPageContent: loadContent } = await import(
+        "@rancho-cocory/cms-server"
+      )
+      return loadContent()
+    }
+
+    const { getLocalizedPageContent } = await import("@rancho-cocory/cms-server")
+    return getLocalizedPageContent(locale)
   }
 
-  return cmsFetch<PageContent>(`/content?_=${Date.now()}`)
+  const params = new URLSearchParams({ _: String(Date.now()) })
+  if (locale !== DEFAULT_LOCALE) {
+    params.set(LOCALE_PARAM, locale)
+  }
+  if (options?.editKey) {
+    params.set("edit_key", options.editKey)
+  }
+
+  return cmsFetch<PageContent>(`/content?${params.toString()}`)
+}
+
+export async function getLocaleConfig(): Promise<LocaleConfig> {
+  return cmsFetch<LocaleConfig>("/locales")
+}
+
+export async function addTranslationLocale(
+  code: string,
+  label: string,
+): Promise<LocaleConfig> {
+  return cmsFetch<LocaleConfig>("/locales", {
+    method: "POST",
+    body: JSON.stringify({ code, label }),
+  })
+}
+
+export async function removeTranslationLocale(
+  code: string,
+): Promise<LocaleConfig> {
+  return cmsFetch<LocaleConfig>(
+    `/locales?${LOCALE_PARAM}=${encodeURIComponent(code)}`,
+    { method: "DELETE" },
+  )
+}
+
+export async function getLocaleTranslations(
+  locale: string,
+): Promise<LocaleStrings> {
+  return cmsFetch<LocaleStrings>(
+    `/translations?${LOCALE_PARAM}=${encodeURIComponent(locale)}`,
+  )
+}
+
+export async function updateLocaleTranslation(
+  path: string,
+  value: unknown,
+  locale: string,
+): Promise<LocaleStrings> {
+  return cmsFetch<LocaleStrings>("/translations", {
+    method: "PATCH",
+    body: JSON.stringify({ lang: locale, path, value }),
+  })
 }
 
 export async function updatePageContent(
