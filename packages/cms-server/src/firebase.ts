@@ -18,11 +18,25 @@ function getFirebaseCredentials() {
   return { projectId, clientEmail, privateKey }
 }
 
+export function getStorageBucketName(): string {
+  const credentials = getFirebaseCredentials()
+  if (!credentials) {
+    throw new Error(
+      "Firebase credentials not configured. Set FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, and FIREBASE_PRIVATE_KEY.",
+    )
+  }
+
+  return (
+    process.env.FIREBASE_STORAGE_BUCKET ??
+    `${credentials.projectId}.firebasestorage.app`
+  )
+}
+
 export function isFirebaseConfigured(): boolean {
   return getFirebaseCredentials() !== null
 }
 
-function getFirebaseApp(): App {
+export function getFirebaseApp(): App {
   if (globalForFirebase.firebaseApp) {
     return globalForFirebase.firebaseApp
   }
@@ -43,6 +57,7 @@ function getFirebaseApp(): App {
   const app = initializeApp({
     credential: cert(credentials),
     projectId: credentials.projectId,
+    storageBucket: getStorageBucketName(),
   })
 
   globalForFirebase.firebaseApp = app

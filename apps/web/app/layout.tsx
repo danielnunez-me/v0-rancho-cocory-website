@@ -6,7 +6,10 @@ import { Toaster } from "@/components/ui/sonner"
 import { PageLoader } from "@/components/page-loader"
 import { ContentProvider } from "@/components/content-provider"
 import { getPageContent } from "@/lib/cms-client"
+import { defaultPageContent } from "@rancho-cocory/shared"
 import "./globals.css"
+
+export const dynamic = "force-dynamic"
 
 const nunito = Nunito({
   subsets: ["latin"],
@@ -18,34 +21,51 @@ const playfair = Playfair_Display({
   variable: "--font-playfair",
 })
 
-export const metadata: Metadata = {
-  title: "Rancho Cocory | Parque Recreativo en Higuey, Republica Dominicana",
-  description:
-    "Rancho Cocory es el parque recreativo familiar en Higuey con piscinas, excursiones en buggy, paseos a caballo, paintball y mucho mas. Desde RD$350 por adulto.",
-  keywords: [
-    "Rancho Cocory",
-    "parque recreativo",
-    "Higuey",
-    "Republica Dominicana",
-    "piscinas",
-    "buggy",
-    "paintball",
-    "pasadia",
-    "excursiones",
-  ],
-  openGraph: {
-    title: "Rancho Cocory | Parque Recreativo en Higuey",
-    description:
-      "Diversión familiar en Higuey. Piscinas, excursiones, paintball y mas.",
-    type: "website",
-    locale: "es_DO",
-  },
+export async function generateMetadata(): Promise<Metadata> {
+  try {
+    const content = await getPageContent()
+    const { seo, branding } = content
+
+    return {
+      title: seo.title,
+      description: seo.description,
+      openGraph: {
+        title: seo.openGraphTitle,
+        description: seo.openGraphDescription,
+        type: "website",
+        locale: "es_DO",
+        siteName: seo.openGraphSiteName,
+        url: seo.openGraphUrl,
+        images: [{ url: seo.openGraphImage }],
+      },
+      icons: {
+        icon: branding.faviconUrl,
+        apple: branding.appleTouchIconUrl ?? branding.logoUrl,
+      },
+    }
+  } catch {
+    return {
+      title: defaultPageContent.seo.title,
+      description: defaultPageContent.seo.description,
+    }
+  }
 }
 
-export const viewport: Viewport = {
-  themeColor: "#29aae3",
-  width: "device-width",
-  initialScale: 1,
+export async function generateViewport(): Promise<Viewport> {
+  try {
+    const content = await getPageContent()
+    return {
+      themeColor: content.seo.themeColor,
+      width: "device-width",
+      initialScale: 1,
+    }
+  } catch {
+    return {
+      themeColor: defaultPageContent.seo.themeColor,
+      width: "device-width",
+      initialScale: 1,
+    }
+  }
 }
 
 export default async function RootLayout({

@@ -30,12 +30,20 @@ export const navbarSchema = z.object({
   navLinks: z.array(navLinkSchema),
 })
 
+export const sectionStyleSchema = z.object({
+  backgroundColor: z.string().optional(),
+  backgroundImage: z.string().optional(),
+})
+
 export const heroSchema = z.object({
   tagline: z.string(),
   location: z.string(),
   ctaPrimary: z.string(),
+  ctaPrimaryHref: z.string(),
   ctaSecondary: z.string(),
+  ctaSecondaryHref: z.string(),
   backgroundImage: z.string(),
+  style: sectionStyleSchema.optional(),
 })
 
 export const serviceSchema = z.object({
@@ -46,12 +54,14 @@ export const serviceSchema = z.object({
   priceDetail: z.string(),
   description: z.string(),
   includes: z.array(z.string()),
+  whatsappMessage: z.string().optional(),
 })
 
 export const servicesSectionSchema = z.object({
   eyebrow: z.string(),
   title: z.string(),
   subtitle: z.string(),
+  style: sectionStyleSchema.optional(),
   items: z.array(serviceSchema),
 })
 
@@ -66,6 +76,7 @@ export const experiencesSectionSchema = z.object({
   eyebrow: z.string(),
   title: z.string(),
   subtitle: z.string(),
+  style: sectionStyleSchema.optional(),
   items: z.array(experienceSchema),
 })
 
@@ -87,7 +98,19 @@ export const gallerySectionSchema = z.object({
   profileImage: z.string(),
   instagramUrl: z.string(),
   followLabel: z.string(),
+  elfsightAppId: z.string(),
+  style: sectionStyleSchema.optional(),
   fallbackPosts: z.array(galleryFallbackPostSchema),
+})
+
+export const googleReviewSchema = z.object({
+  id: z.string(),
+  authorName: z.string(),
+  rating: z.number(),
+  text: z.string(),
+  relativeTime: z.string(),
+  profilePhotoUrl: z.string().optional(),
+  reviewUrl: z.string().optional(),
 })
 
 export const testimonialsSectionSchema = z.object({
@@ -96,6 +119,12 @@ export const testimonialsSectionSchema = z.object({
   googlePlaceId: z.string(),
   googleReviewsUrl: z.string(),
   viewAllLabel: z.string(),
+  minRating: z.number(),
+  maxReviews: z.number(),
+  displayRating: z.number().optional(),
+  ratingSummary: z.string().optional(),
+  fallbackReviews: z.array(googleReviewSchema),
+  style: sectionStyleSchema.optional(),
 })
 
 export const faqItemSchema = z.object({
@@ -107,6 +136,7 @@ export const faqItemSchema = z.object({
 export const faqSectionSchema = z.object({
   eyebrow: z.string(),
   title: z.string(),
+  style: sectionStyleSchema.optional(),
   items: z.array(faqItemSchema),
 })
 
@@ -137,6 +167,7 @@ export const contactSectionSchema = z.object({
   subtitle: z.string(),
   socialLabel: z.string(),
   mapEmbedUrl: z.string(),
+  style: sectionStyleSchema.optional(),
   contactInfo: z.array(contactInfoSchema),
   socialLinks: z.array(socialLinkSchema),
 })
@@ -157,9 +188,54 @@ export const footerSchema = z.object({
   navLinks: z.array(navLinkSchema),
 })
 
+export const siteBrandingSchema = z.object({
+  logoUrl: z.string(),
+  faviconUrl: z.string(),
+  appleTouchIconUrl: z.string().optional(),
+})
+
+export const siteSeoSchema = z.object({
+  title: z.string(),
+  description: z.string(),
+  openGraphTitle: z.string(),
+  openGraphDescription: z.string(),
+  openGraphImage: z.string(),
+  openGraphSiteName: z.string(),
+  openGraphUrl: z.string(),
+  themeColor: z.string(),
+})
+
+export const whatsappSchema = z.object({
+  phone: z.string(),
+  defaultMessage: z.string(),
+})
+
+export const mediaAssetSchema = z.object({
+  id: z.string(),
+  url: z.string(),
+  name: z.string(),
+  createdAt: z.string().optional(),
+})
+
+export const legalDocumentSchema = z.object({
+  title: z.string(),
+  lastUpdated: z.string(),
+  content: z.string(),
+})
+
+export const legalSchema = z.object({
+  privacyPolicy: legalDocumentSchema,
+  termsAndConditions: legalDocumentSchema,
+})
+
 export const pageContentSchema = z.object({
   theme: themeSchema,
   loader: loaderSchema,
+  branding: siteBrandingSchema,
+  seo: siteSeoSchema,
+  whatsapp: whatsappSchema,
+  mediaLibrary: z.array(mediaAssetSchema),
+  legal: legalSchema,
   navbar: navbarSchema,
   hero: heroSchema,
   services: servicesSectionSchema,
@@ -175,6 +251,7 @@ export type Theme = z.infer<typeof themeSchema>
 export type Loader = z.infer<typeof loaderSchema>
 export type NavLink = z.infer<typeof navLinkSchema>
 export type Navbar = z.infer<typeof navbarSchema>
+export type SectionStyle = z.infer<typeof sectionStyleSchema>
 export type Hero = z.infer<typeof heroSchema>
 export type Service = z.infer<typeof serviceSchema>
 export type ServicesSection = z.infer<typeof servicesSectionSchema>
@@ -189,6 +266,12 @@ export type ContactInfo = z.infer<typeof contactInfoSchema>
 export type SocialLink = z.infer<typeof socialLinkSchema>
 export type ContactSection = z.infer<typeof contactSectionSchema>
 export type Footer = z.infer<typeof footerSchema>
+export type SiteBranding = z.infer<typeof siteBrandingSchema>
+export type SiteSeo = z.infer<typeof siteSeoSchema>
+export type WhatsappConfig = z.infer<typeof whatsappSchema>
+export type MediaAsset = z.infer<typeof mediaAssetSchema>
+export type LegalDocument = z.infer<typeof legalDocumentSchema>
+export type Legal = z.infer<typeof legalSchema>
 export type PageContent = z.infer<typeof pageContentSchema>
 
 export const instagramPostSchema = z.object({
@@ -204,23 +287,15 @@ export const instagramPostSchema = z.object({
 
 export type InstagramPost = z.infer<typeof instagramPostSchema>
 
-export const googleReviewSchema = z.object({
-  id: z.string(),
-  authorName: z.string(),
-  rating: z.number(),
-  text: z.string(),
-  relativeTime: z.string(),
-  profilePhotoUrl: z.string().optional(),
-})
-
-export type GoogleReview = z.infer<typeof googleReviewSchema>
-
 export const googleReviewsResponseSchema = z.object({
   rating: z.number(),
   userRatingCount: z.number(),
   displayName: z.string(),
+  googleMapsUri: z.string().optional(),
   reviews: z.array(googleReviewSchema),
 })
+
+export type GoogleReview = z.infer<typeof googleReviewSchema>
 
 export type GoogleReviewsResponse = z.infer<typeof googleReviewsResponseSchema>
 

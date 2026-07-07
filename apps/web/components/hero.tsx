@@ -2,8 +2,9 @@
 
 import Image from "next/image"
 import { MapPin, ChevronDown } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { EditableText, EditableImage } from "@/components/editor/editor-mode"
+import { EditableText } from "@/components/editor/editor-mode"
+import { EditableSection } from "@/components/editor/editable-section"
+import { EditableCta } from "@/components/editor/editable-cta"
 import { useContent } from "@/components/content-provider"
 
 export function Hero() {
@@ -11,8 +12,13 @@ export function Hero() {
   const { hero } = content
 
   return (
-    <section
-      id="inicio"
+    <EditableSection
+      sectionId="inicio"
+      stylePath="hero.style"
+      style={hero.style}
+      linkedImagePath="hero.backgroundImage"
+      linkedImage={hero.backgroundImage}
+      editButtonClassName="top-20 md:top-24"
       className="relative isolate min-h-[100dvh] overflow-hidden"
     >
       <div className="absolute inset-0 z-0 min-h-[100dvh]">
@@ -24,12 +30,6 @@ export function Hero() {
           className="object-cover object-center"
           priority
           quality={75}
-        />
-        <EditableImage
-          path="hero.backgroundImage"
-          src={hero.backgroundImage}
-          alt="Hero background"
-          className="top-4 right-4"
         />
       </div>
 
@@ -52,28 +52,25 @@ export function Hero() {
           </p>
 
           <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
-            <Button
-              size="lg"
-              className="rounded-full bg-primary px-8 py-6 text-base font-bold text-primary-foreground shadow-lg hover:bg-primary/90"
-              asChild
-            >
-              <a href="#actividades">
-                <EditableText path="hero.ctaPrimary" value={hero.ctaPrimary} />
-              </a>
-            </Button>
-            <Button
-              size="lg"
-              variant="outline"
-              className="rounded-full border-white/30 bg-white/15 px-8 py-6 text-base font-bold text-white backdrop-blur-sm hover:bg-white/25 hover:text-white"
-              asChild
-            >
-              <a href="#contacto">
-                <EditableText
-                  path="hero.ctaSecondary"
-                  value={hero.ctaSecondary}
-                />
-              </a>
-            </Button>
+            <EditableCta
+              mode="link"
+              label={hero.ctaPrimary}
+              labelPath="hero.ctaPrimary"
+              href={hero.ctaPrimaryHref}
+              hrefPath="hero.ctaPrimaryHref"
+              buttonSize="lg"
+              buttonClassName="rounded-full bg-primary px-8 py-6 text-base font-bold text-primary-foreground shadow-lg hover:bg-primary/90"
+            />
+            <EditableCta
+              mode="link"
+              label={hero.ctaSecondary}
+              labelPath="hero.ctaSecondary"
+              href={hero.ctaSecondaryHref}
+              hrefPath="hero.ctaSecondaryHref"
+              buttonSize="lg"
+              buttonVariant="outline"
+              buttonClassName="rounded-full border-white/30 bg-white/15 px-8 py-6 text-base font-bold text-white backdrop-blur-sm hover:bg-white/25 hover:text-white"
+            />
           </div>
         </div>
       </div>
@@ -85,6 +82,6 @@ export function Hero() {
       >
         <ChevronDown className="size-8" />
       </a>
-    </section>
+    </EditableSection>
   )
 }

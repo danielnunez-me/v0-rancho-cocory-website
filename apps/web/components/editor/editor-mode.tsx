@@ -9,7 +9,7 @@ import {
   type ReactNode,
 } from "react"
 import { useSearchParams } from "next/navigation"
-import { Pencil, Palette, Plus, Trash2, X } from "lucide-react"
+import { Pencil, Plus, Trash2, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -41,6 +41,8 @@ import { cn } from "@/lib/utils"
 import { toast } from "sonner"
 import { getAuthStatus, loginEditor } from "@/lib/cms-client"
 import { useContent } from "@/components/content-provider"
+import { SiteSettingsFab } from "@/components/editor/site-settings-modal"
+import { ImagePicker } from "@/components/editor/image-picker"
 
 interface EditorModeContextValue {
   isEditorMode: boolean
@@ -151,61 +153,7 @@ function EditorFab() {
 }
 
 function ThemeEditorFab() {
-  const { isEditorMode } = useEditorMode()
-  const { content, updateField } = useContent()
-  const [open, setOpen] = useState(false)
-
-  if (!isEditorMode) return null
-
-  return (
-    <>
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        aria-label="Editar colores"
-        className="fixed bottom-6 left-24 z-50 flex size-13 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-xl border border-background/20 hover:scale-110 transition-transform"
-      >
-        <Palette className="size-5" />
-      </button>
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Colores del sitio</DialogTitle>
-          </DialogHeader>
-          <div className="grid grid-cols-2 gap-4">
-            {(
-              [
-                ["primary", "Primario"],
-                ["accent", "Acento"],
-                ["foreground", "Texto"],
-                ["background", "Fondo"],
-              ] as const
-            ).map(([key, label]) => (
-              <div key={key} className="space-y-2">
-                <Label>{label}</Label>
-                <div className="flex gap-2">
-                  <Input
-                    type="color"
-                    value={content.theme[key]}
-                    onChange={(e) =>
-                      void updateField(`theme.${key}`, e.target.value)
-                    }
-                    className="h-10 w-14 p-1"
-                  />
-                  <Input
-                    value={content.theme[key]}
-                    onChange={(e) =>
-                      void updateField(`theme.${key}`, e.target.value)
-                    }
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
-        </DialogContent>
-      </Dialog>
-    </>
-  )
+  return <SiteSettingsFab />
 }
 
 function EditorProviderInner({ children }: { children: ReactNode }) {
@@ -431,15 +379,11 @@ export function EditableImage({
         <Pencil className="size-4" />
       </button>
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Editar imagen</DialogTitle>
           </DialogHeader>
-          <Input
-            value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-            placeholder="/images/ejemplo.jpg"
-          />
+          <ImagePicker value={draft} onChange={setDraft} />
           <DialogFooter>
             <Button variant="outline" onClick={() => setOpen(false)}>
               Cancelar
@@ -570,6 +514,7 @@ export function ItemEditDialog({
     label: string
     value: string
     multiline?: boolean
+    type?: "text" | "textarea" | "image"
   }>
   onSave: (values: Record<string, string>) => void | Promise<void>
 }) {
@@ -589,7 +534,14 @@ export function ItemEditDialog({
           {fields.map((field) => (
             <div key={field.key} className="space-y-2">
               <Label>{field.label}</Label>
-              {field.multiline ? (
+              {field.type === "image" ? (
+                <ImagePicker
+                  value={values[field.key] ?? ""}
+                  onChange={(url) =>
+                    setValues((prev) => ({ ...prev, [field.key]: url }))
+                  }
+                />
+              ) : field.multiline || field.type === "textarea" ? (
                 <Textarea
                   value={values[field.key] ?? ""}
                   onChange={(e) =>

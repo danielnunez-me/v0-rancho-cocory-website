@@ -1,94 +1,68 @@
 "use client"
 
+import { useEffect } from "react"
 import Image from "next/image"
-import { Instagram, Heart, MessageCircle } from "lucide-react"
+import Script from "next/script"
+import { Instagram } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Skeleton } from "@/components/ui/skeleton"
 import { EditableText } from "@/components/editor/editor-mode"
+import { EditableSection } from "@/components/editor/editable-section"
 import { useContent } from "@/components/content-provider"
-import { useInstagramFeed } from "@/lib/hooks/use-instagram-feed"
-import type { GalleryFallbackPost, InstagramPost } from "@rancho-cocory/shared"
+import { useEditorMode } from "@/components/editor/editor-mode"
 
-function PostGrid({
-  posts,
-  instagramUrl,
-}: {
-  posts: Array<
-    | InstagramPost
-    | (GalleryFallbackPost & { mediaUrl?: string; permalink?: string })
-  >
-  instagramUrl: string
-}) {
-  return (
-    <div className="grid grid-cols-2 md:grid-cols-3 gap-0.5">
-      {posts.map((post) => {
-        const imageUrl =
-          "mediaUrl" in post && post.mediaUrl
-            ? post.mediaUrl
-            : "image" in post
-              ? post.image
-              : "/placeholder.svg"
-        const alt =
-          "caption" in post && post.caption
-            ? post.caption.slice(0, 80)
-            : "alt" in post
-              ? post.alt
-              : "Instagram post"
-        const likes = "likes" in post ? post.likes : 0
-        const comments = "comments" in post ? post.comments : 0
-        const href =
-          "permalink" in post && post.permalink
-            ? post.permalink
-            : instagramUrl
+function hideElfsightBranding(root: ParentNode) {
+  const selectors = [
+    'a[href*="elfsight.com"]',
+    '[class*="eapps-instagram-feed-posts-grid-load-more"]',
+    '[class*="eapps-widget-toolbar"]',
+    '[class*="eapps-branding"]',
+    ".eapps-widget-toolbar",
+  ]
 
-        return (
-          <a
-            key={"id" in post ? post.id : imageUrl}
-            href={href}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="group relative aspect-square overflow-hidden"
-          >
-            <Image
-              src={imageUrl || "/placeholder.svg"}
-              alt={alt}
-              fill
-              sizes="(max-width: 768px) 50vw, 33vw"
-              className="object-cover transition-transform duration-300 group-hover:scale-105"
-            />
-            <div className="absolute inset-0 bg-foreground/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-5">
-              <span className="flex items-center gap-1.5 text-background font-bold text-sm">
-                <Heart className="size-4 fill-current" aria-hidden="true" />
-                {likes}
-              </span>
-              <span className="flex items-center gap-1.5 text-background font-bold text-sm">
-                <MessageCircle className="size-4 fill-current" aria-hidden="true" />
-                {comments}
-              </span>
-            </div>
-          </a>
-        )
-      })}
-    </div>
-  )
+  for (const selector of selectors) {
+    root.querySelectorAll(selector).forEach((node) => {
+      const el = node as HTMLElement
+      el.style.setProperty("display", "none", "important")
+      el.style.setProperty("visibility", "hidden", "important")
+      el.style.setProperty("height", "0", "important")
+      el.style.setProperty("overflow", "hidden", "important")
+      el.style.setProperty("pointer-events", "none", "important")
+      el.setAttribute("aria-hidden", "true")
+    })
+  }
 }
 
 export function Gallery() {
   const { content } = useContent()
   const { gallery } = content
-  const { posts: livePosts, isLoading } = useInstagramFeed(6)
+  const { isEditorMode } = useEditorMode()
 
-  const displayPosts =
-    livePosts.length > 0
-      ? livePosts
-      : gallery.fallbackPosts.map((p) => ({
-          ...p,
-          mediaUrl: p.image,
-          permalink: p.permalink ?? gallery.instagramUrl,
-        }))
+  useEffect(() => {
+    const wrapper = document.getElementById("galeria-elfsight-root")
+    if (!wrapper) return
+
+    const run = () => hideElfsightBranding(wrapper)
+    run()
+
+    const observer = new MutationObserver(run)
+    observer.observe(wrapper, { childList: true, subtree: true })
+
+    const interval = window.setInterval(run, 1500)
+    return () => {
+      observer.disconnect()
+      window.clearInterval(interval)
+    }
+  }, [gallery.elfsightAppId])
 
   return (
-    <section id="galeria" className="py-20 md:py-28 px-4">
+    <EditableSection
+      sectionId="galeria"
+      stylePath="gallery.style"
+      style={gallery.style}
+      className="py-20 md:py-28 px-4"
+    >
+      <Script src="https://elfsightcdn.com/platform.js" strategy="lazyOnload" />
+
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-14">
           <p className="text-sm font-bold uppercase tracking-widest text-primary mb-2">
@@ -130,22 +104,28 @@ export function Gallery() {
                   <EditableText path="gallery.handle" value={gallery.handle} />
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  <EditableText path="gallery.profileBio" value={gallery.profileBio} />
+                  <EditableText
+                    path="gallery.profileBio"
+                    value={gallery.profileBio}
+                  />
                 </p>
               </div>
             </a>
-            <Instagram className="size-5 text-muted-foreground" aria-hidden="true" />
+            <Instagram
+              className="size-5 text-muted-foreground"
+              aria-hidden="true"
+            />
           </div>
 
-          {isLoading ? (
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-0.5">
-              {Array.from({ length: 6 }).map((_, i) => (
-                <Skeleton key={i} className="aspect-square rounded-none" />
-              ))}
-            </div>
-          ) : (
-            <PostGrid posts={displayPosts} instagramUrl={gallery.instagramUrl} />
-          )}
+          <div
+            id="galeria-elfsight-root"
+            className="elfsight-feed-wrapper w-full min-h-[320px] overflow-hidden"
+          >
+            <div
+              className={`elfsight-app-${gallery.elfsightAppId}`}
+              data-elfsight-app-lazy
+            />
+          </div>
         </div>
 
         <div className="text-center mt-8">
@@ -161,11 +141,24 @@ export function Gallery() {
               rel="noopener noreferrer"
             >
               <Instagram className="size-5" />
-              <EditableText path="gallery.followLabel" value={gallery.followLabel} />
+              <EditableText
+                path="gallery.followLabel"
+                value={gallery.followLabel}
+              />
             </a>
           </Button>
         </div>
+
+        {isEditorMode && (
+          <p className="mt-4 text-center text-xs text-muted-foreground">
+            Widget Elfsight ID:{" "}
+            <EditableText
+              path="gallery.elfsightAppId"
+              value={gallery.elfsightAppId}
+            />
+          </p>
+        )}
       </div>
-    </section>
+    </EditableSection>
   )
 }
