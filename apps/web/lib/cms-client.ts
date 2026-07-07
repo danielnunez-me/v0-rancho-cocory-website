@@ -62,6 +62,7 @@ export interface AuthStatus {
   hasValidEditKey: boolean
   isAuthenticated: boolean
   canEdit: boolean
+  firebaseSynced?: boolean
 }
 
 export async function getAuthStatus(editKey?: string): Promise<AuthStatus> {

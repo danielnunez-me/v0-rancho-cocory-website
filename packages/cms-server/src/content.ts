@@ -1,4 +1,5 @@
 import {
+  defaultPageContent,
   pageContentSchema,
   type PageContent,
 } from "@rancho-cocory/shared"
@@ -50,6 +51,22 @@ export async function seedPageContent(content: PageContent): Promise<void> {
     },
     { merge: true },
   )
+}
+
+export async function ensurePageContentInitialized(): Promise<{
+  seeded: boolean
+}> {
+  const snapshot = await getDb()
+    .collection("pageContent")
+    .doc(PAGE_CONTENT_DOC)
+    .get()
+
+  if (snapshot.exists) {
+    return { seeded: false }
+  }
+
+  await seedPageContent(defaultPageContent)
+  return { seeded: true }
 }
 
 function setByPath(obj: unknown, keys: string[], value: unknown): unknown {

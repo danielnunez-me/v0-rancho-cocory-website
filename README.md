@@ -20,8 +20,8 @@ cp .env.example apps/web/.env.local
 
 # Configura FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL y FIREBASE_PRIVATE_KEY
 
-# Seed de la base de datos Firestore
-pnpm firebase:seed
+# Opcional: seed manual (también se sincroniza automáticamente con ?edit_key=)
+# pnpm firebase:seed
 
 # Iniciar frontend (incluye API integrada en /api/cms)
 pnpm dev:web
@@ -37,9 +37,10 @@ pnpm dev:api
 ## Edición inline (sin panel admin)
 
 1. Visita `http://localhost:3000/?edit_key=dev-edit-key`
-2. Ingresa la contraseña (`admin123` por defecto)
-3. Aparece el botón flotante de editar (esquina inferior izquierda)
-4. Edita textos, imágenes, listas y colores directamente en la página
+2. Si Firestore está vacío, el contenido se sincroniza automáticamente (verás un aviso en pantalla)
+3. Ingresa la contraseña (`admin123` por defecto)
+4. Aparece el botón flotante de editar (esquina inferior izquierda)
+5. Edita textos, imágenes, listas y colores directamente en la página
 
 ## Deploy en Vercel + Firebase
 
@@ -55,13 +56,15 @@ pnpm dev:api
 
 **Reglas Firestore:** deniega acceso cliente; todo el acceso es server-side vía Admin SDK.
 
-### 2. Seed de la base de datos
+### 2. Sincronización inicial con Firebase
 
-Desde tu máquina local con las credenciales de Firebase:
+**No necesitas terminal ni clonar el repo.** La primera vez que visitas el sitio con `?edit_key=` válido:
 
-```bash
-pnpm firebase:seed
-```
+1. El servidor crea `pageContent/main` en Firestore con el contenido por defecto
+2. Verás el aviso **"Contenido sincronizado con Firebase"**
+3. En los logs de Vercel aparece: `[CMS] Firebase sync: seeded pageContent/main...`
+
+Opcional en desarrollo local: `pnpm firebase:seed`
 
 ### 3. Variables de entorno en Vercel
 
@@ -89,7 +92,7 @@ Tras desplegar, prueba:
 GET /api/cms/auth/me?edit_key=TU_EDIT_KEY
 ```
 
-Debe retornar `{ "hasValidEditKey": true, ... }`.
+Debe retornar `{ "hasValidEditKey": true, "firebaseSynced": true }` la primera vez (si Firestore estaba vacío).
 
 ## API Endpoints
 

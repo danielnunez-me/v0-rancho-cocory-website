@@ -38,6 +38,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { cn } from "@/lib/utils"
+import { toast } from "sonner"
 import { getAuthStatus, loginEditor } from "@/lib/cms-client"
 import { useContent } from "@/components/content-provider"
 
@@ -210,6 +211,7 @@ function ThemeEditorFab() {
 function EditorProviderInner({ children }: { children: ReactNode }) {
   const searchParams = useSearchParams()
   const editKey = searchParams.get("edit_key") ?? ""
+  const { refreshContent } = useContent()
   const [canEdit, setCanEdit] = useState(false)
   const [showLogin, setShowLogin] = useState(false)
   const [isEditorMode, setIsEditorMode] = useState(false)
@@ -223,7 +225,12 @@ function EditorProviderInner({ children }: { children: ReactNode }) {
     }
 
     getAuthStatus(editKey)
-      .then((status) => {
+      .then(async (status) => {
+        if (status.firebaseSynced) {
+          await refreshContent()
+          toast.success("Contenido sincronizado con Firebase")
+        }
+
         if (status.canEdit) {
           setCanEdit(true)
           setIsEditorMode(true)
@@ -232,7 +239,7 @@ function EditorProviderInner({ children }: { children: ReactNode }) {
         }
       })
       .finally(() => setChecked(true))
-  }, [editKey])
+  }, [editKey, refreshContent])
 
   const handleLoginSuccess = useCallback(() => {
     setShowLogin(false)

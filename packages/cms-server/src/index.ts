@@ -9,7 +9,12 @@ export {
   verifyPassword,
 } from "./auth"
 export { getCached, getCacheMeta, isCacheFresh, setCache } from "./cache"
-export { getPageContent, seedPageContent, updatePageContent } from "./content"
+export {
+  ensurePageContentInitialized,
+  getPageContent,
+  seedPageContent,
+  updatePageContent,
+} from "./content"
 export { fetchGoogleReviews } from "./google-reviews"
 export { fetchInstagramFeed } from "./instagram"
 export { getDb, isFirebaseConfigured } from "./firebase"
