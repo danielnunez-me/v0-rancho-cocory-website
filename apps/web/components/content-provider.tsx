@@ -9,14 +9,14 @@ import {
   useState,
   type ReactNode,
 } from "react"
-import type { PageContent, SupportedLocale } from "@rancho-cocory/shared"
+import type { PageContent } from "@rancho-cocory/shared"
 import { defaultPageContent, getUiStrings } from "@rancho-cocory/shared"
 import { getPageContent, updatePageContent } from "@/lib/cms-client"
 import { toast } from "sonner"
 
 interface ContentContextValue {
   content: PageContent
-  locale: SupportedLocale
+  locale: string
   isLoading: boolean
   updateField: (path: string, value: unknown) => Promise<void>
   refreshContent: () => Promise<void>
@@ -40,7 +40,7 @@ export function ContentProvider({
   initialContent,
 }: {
   children: ReactNode
-  locale: SupportedLocale
+  locale: string
   initialContent?: PageContent
 }) {
   const [content, setContent] = useState<PageContent>(
