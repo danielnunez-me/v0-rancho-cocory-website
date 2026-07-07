@@ -4,7 +4,7 @@ import { useEffect, useState } from "react"
 import { useSearchParams } from "next/navigation"
 import Image from "next/image"
 import { Info, Share2 } from "lucide-react"
-import { buildWhatsAppUrl } from "@rancho-cocory/shared"
+import { buildWhatsAppUrl, LOCALE_PARAM } from "@rancho-cocory/shared"
 import type { Service } from "@rancho-cocory/shared"
 import { Button } from "@/components/ui/button"
 import {
@@ -39,8 +39,20 @@ function ActivityShareButton({
   serviceId: string
   title: string
 }) {
+  const searchParams = useSearchParams()
+
+  function buildShareUrl() {
+    const params = new URLSearchParams()
+    params.set("actividad", serviceId)
+    const lang = searchParams.get(LOCALE_PARAM)
+    if (lang) {
+      params.set(LOCALE_PARAM, lang)
+    }
+    return `${window.location.origin}${window.location.pathname}?${params.toString()}`
+  }
+
   async function handleShare() {
-    const url = `${window.location.origin}${window.location.pathname}?actividad=${encodeURIComponent(serviceId)}`
+    const url = buildShareUrl()
     try {
       if (navigator.share) {
         await navigator.share({ title, text: title, url })
