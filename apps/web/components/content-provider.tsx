@@ -9,13 +9,14 @@ import {
   useState,
   type ReactNode,
 } from "react"
-import type { PageContent } from "@rancho-cocory/shared"
-import { defaultPageContent } from "@rancho-cocory/shared"
+import type { PageContent, SupportedLocale } from "@rancho-cocory/shared"
+import { defaultPageContent, getUiStrings } from "@rancho-cocory/shared"
 import { getPageContent, updatePageContent } from "@/lib/cms-client"
 import { toast } from "sonner"
 
 interface ContentContextValue {
   content: PageContent
+  locale: SupportedLocale
   isLoading: boolean
   updateField: (path: string, value: unknown) => Promise<void>
   refreshContent: () => Promise<void>
@@ -23,6 +24,7 @@ interface ContentContextValue {
 
 const ContentContext = createContext<ContentContextValue>({
   content: defaultPageContent,
+  locale: "es",
   isLoading: true,
   updateField: async () => {},
   refreshContent: async () => {},
@@ -34,41 +36,47 @@ export function useContent() {
 
 export function ContentProvider({
   children,
+  locale,
   initialContent,
 }: {
   children: ReactNode
+  locale: SupportedLocale
   initialContent?: PageContent
 }) {
   const [content, setContent] = useState<PageContent>(
     initialContent ?? defaultPageContent,
   )
   const [isLoading, setIsLoading] = useState(!initialContent)
+  const ui = useMemo(() => getUiStrings(locale), [locale])
 
   const refreshContent = useCallback(async () => {
     try {
-      const data = await getPageContent()
+      const data = await getPageContent(locale)
       setContent(data)
     } catch {
-      toast.error("No se pudo cargar el contenido")
+      toast.error(ui.toastLoadError)
     } finally {
       setIsLoading(false)
     }
-  }, [])
+  }, [locale, ui.toastLoadError])
 
   useEffect(() => {
     void refreshContent()
   }, [refreshContent])
 
-  const updateField = useCallback(async (path: string, value: unknown) => {
-    try {
-      const updated = await updatePageContent(path, value)
-      setContent(updated)
-      toast.success("Contenido guardado")
-    } catch {
-      toast.error("Error al guardar")
-      throw new Error("Save failed")
-    }
-  }, [])
+  const updateField = useCallback(
+    async (path: string, value: unknown) => {
+      try {
+        const updated = await updatePageContent(path, value)
+        setContent(updated)
+        toast.success(ui.toastSaveSuccess)
+      } catch {
+        toast.error(ui.toastSaveError)
+        throw new Error("Save failed")
+      }
+    },
+    [ui.toastSaveError, ui.toastSaveSuccess],
+  )
 
   const themeStyles = useMemo(
     () =>
@@ -83,7 +91,7 @@ export function ContentProvider({
 
   return (
     <ContentContext.Provider
-      value={{ content, isLoading, updateField, refreshContent }}
+      value={{ content, locale, isLoading, updateField, refreshContent }}
     >
       <div style={themeStyles}>{children}</div>
     </ContentContext.Provider>
