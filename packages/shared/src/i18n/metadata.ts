@@ -1,16 +1,7 @@
-import type { SupportedLocale } from "./config"
-
-interface LocaleMetadata {
-  openGraphLocale: string
-}
-
-const localeMetadata: Record<SupportedLocale, LocaleMetadata> = {
-  es: { openGraphLocale: "es_DO" },
-  en: { openGraphLocale: "en_US" },
-}
-
-export function getOpenGraphLocale(locale: SupportedLocale): string {
-  return localeMetadata[locale].openGraphLocale
+export function getOpenGraphLocale(locale: string): string {
+  if (locale === "es") return "es_DO"
+  if (locale === "en") return "en_US"
+  return `${locale}_${locale.toUpperCase()}`
 }
 
 export interface PageSeoMetadata {
@@ -32,7 +23,7 @@ export interface PageSeoMetadata {
 }
 
 export function buildPageMetadata(
-  locale: SupportedLocale,
+  locale: string,
   seo: {
     title: string
     description: string

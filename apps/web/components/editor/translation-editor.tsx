@@ -1,18 +1,33 @@
 "use client"
 
 import { useCallback, useEffect, useState } from "react"
-import type { PageContent } from "@rancho-cocory/shared"
-import { applyLocaleOverlay, getLocaleContent } from "@rancho-cocory/shared"
+import type { LocaleConfig, LocaleStrings, PageContent } from "@rancho-cocory/shared"
+import {
+  applyLocaleOverlay,
+  getDefaultLocaleStrings,
+  isValidLocaleCode,
+} from "@rancho-cocory/shared"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { useContent } from "@/components/content-provider"
 import {
+  addTranslationLocale,
+  getLocaleConfig,
   getLocaleTranslations,
+  removeTranslationLocale,
   updateLocaleTranslation,
 } from "@/lib/cms-client"
 import { toast } from "sonner"
+import { Plus, Trash2 } from "lucide-react"
 
 const SECTIONS = [
   { id: "loader", label: "Carga" },
@@ -153,36 +168,59 @@ function IncludesTranslationField({
 export function TranslationEditor() {
   const { content } = useContent()
   const [activeSection, setActiveSection] = useState<SectionId>("navbar")
-  const [overlay, setOverlay] = useState<Partial<PageContent>>({})
-  const [fallback, setFallback] = useState<PageContent | null>(null)
+  const [localeConfig, setLocaleConfig] = useState<LocaleConfig>({ locales: [] })
+  const [selectedLocale, setSelectedLocale] = useState("en")
+  const [overlay, setOverlay] = useState<LocaleStrings>({})
+  const [fallback, setFallback] = useState<LocaleStrings>({})
   const [loading, setLoading] = useState(true)
+  const [newLocaleCode, setNewLocaleCode] = useState("")
+  const [newLocaleLabel, setNewLocaleLabel] = useState("")
+  const [addingLocale, setAddingLocale] = useState(false)
+
+  const loadLocaleConfig = useCallback(async () => {
+    return getLocaleConfig()
+  }, [])
 
   const loadTranslations = useCallback(async () => {
     setLoading(true)
     try {
-      const [translations, staticEn] = await Promise.all([
-        getLocaleTranslations("en"),
-        getLocaleContent("en"),
+      const config = await loadLocaleConfig()
+      setLocaleConfig(config)
+
+      const locale =
+        config.locales.find((entry) => entry.code === selectedLocale)?.code ??
+        config.locales[0]?.code
+
+      if (!locale) {
+        setOverlay({})
+        setFallback({})
+        return
+      }
+
+      if (locale !== selectedLocale) {
+        setSelectedLocale(locale)
+      }
+
+      const [translations, staticStrings] = await Promise.all([
+        getLocaleTranslations(locale),
+        getDefaultLocaleStrings(locale),
       ])
       setOverlay(translations)
-      setFallback(staticEn)
+      setFallback(staticStrings)
     } catch {
       toast.error("No se pudieron cargar las traducciones")
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [loadLocaleConfig, selectedLocale])
 
   useEffect(() => {
     void loadTranslations()
   }, [loadTranslations])
 
-  const preview =
-    fallback !== null
-      ? applyLocaleOverlay(content, overlay, fallback)
-      : content
+  const preview = applyLocaleOverlay(content, overlay, fallback)
 
-  const englishAt = useCallback(
+  const translatedAt = useCallback(
     (path: string): string => {
       const value = getByPath(preview, path)
       return typeof value === "string" ? value : ""
@@ -190,10 +228,62 @@ export function TranslationEditor() {
     [preview],
   )
 
-  const saveField = useCallback(async (path: string, value: unknown) => {
-    const updated = await updateLocaleTranslation(path, value, "en")
-    setOverlay(updated)
-  }, [])
+  const saveField = useCallback(
+    async (path: string, value: unknown) => {
+      const updated = await updateLocaleTranslation(path, value, selectedLocale)
+      setOverlay(updated)
+    },
+    [selectedLocale],
+  )
+
+  async function handleAddLocale() {
+    const code = newLocaleCode.toLowerCase().trim()
+    const label = newLocaleLabel.trim()
+
+    if (!isValidLocaleCode(code) || code === "es") {
+      toast.error("Código de idioma inválido (usa 2 letras, ej: en, fr)")
+      return
+    }
+    if (!label) {
+      toast.error("Ingresa un nombre para el idioma")
+      return
+    }
+
+    setAddingLocale(true)
+    try {
+      const config = await addTranslationLocale(code, label)
+      setLocaleConfig(config)
+      setSelectedLocale(code)
+      setNewLocaleCode("")
+      setNewLocaleLabel("")
+      toast.success(`Idioma ${label} añadido`)
+    } catch {
+      toast.error("No se pudo añadir el idioma")
+    } finally {
+      setAddingLocale(false)
+    }
+  }
+
+  async function handleRemoveLocale(code: string) {
+    if (!confirm(`¿Eliminar el idioma ${code}? Se borrarán sus traducciones.`)) {
+      return
+    }
+
+    try {
+      const config = await removeTranslationLocale(code)
+      setLocaleConfig(config)
+      if (selectedLocale === code) {
+        setSelectedLocale(config.locales[0]?.code ?? "en")
+      }
+      toast.success("Idioma eliminado")
+    } catch {
+      toast.error("No se pudo eliminar el idioma")
+    }
+  }
+
+  const selectedLocaleLabel =
+    localeConfig.locales.find((locale) => locale.code === selectedLocale)
+      ?.label ?? selectedLocale
 
   if (loading) {
     return (
@@ -206,10 +296,88 @@ export function TranslationEditor() {
   return (
     <div className="space-y-4">
       <p className="text-sm text-muted-foreground">
-        Edita las traducciones al inglés. El contenido en español se gestiona
-        inline en la página; aquí solo se guardan los textos en inglés sobre la
-        estructura real del sitio.
+        Edita solo los textos traducibles. Imágenes, URLs y estructura siempre
+        provienen del contenido español en la base de datos.
       </p>
+
+      <div className="space-y-3 border rounded-lg p-4">
+        <Label>Idioma a editar</Label>
+        {localeConfig.locales.length > 0 ? (
+          <Select value={selectedLocale} onValueChange={setSelectedLocale}>
+            <SelectTrigger>
+              <SelectValue placeholder="Selecciona un idioma" />
+            </SelectTrigger>
+            <SelectContent>
+              {localeConfig.locales.map((locale) => (
+                <SelectItem key={locale.code} value={locale.code}>
+                  {locale.label} ({locale.code})
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        ) : (
+          <p className="text-sm text-muted-foreground">
+            No hay idiomas configurados. Añade uno abajo.
+          </p>
+        )}
+
+        <div className="space-y-2 pt-2 border-t">
+          <Label className="text-xs text-muted-foreground">
+            Idiomas del sitio
+          </Label>
+          <ul className="space-y-1">
+            {localeConfig.locales.map((locale) => (
+              <li
+                key={locale.code}
+                className="flex items-center justify-between text-sm gap-2"
+              >
+                <span>
+                  {locale.label}{" "}
+                  <span className="text-muted-foreground">({locale.code})</span>
+                </span>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => void handleRemoveLocale(locale.code)}
+                  aria-label={`Eliminar ${locale.label}`}
+                >
+                  <Trash2 className="size-4 text-destructive" />
+                </Button>
+              </li>
+            ))}
+          </ul>
+          <div className="grid grid-cols-2 gap-2 pt-1">
+            <Input
+              value={newLocaleCode}
+              onChange={(e) => setNewLocaleCode(e.target.value)}
+              placeholder="Código (ej: fr)"
+              maxLength={2}
+            />
+            <Input
+              value={newLocaleLabel}
+              onChange={(e) => setNewLocaleLabel(e.target.value)}
+              placeholder="Nombre (ej: Français)"
+            />
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => void handleAddLocale()}
+            disabled={addingLocale}
+          >
+            <Plus className="size-4 mr-1" />
+            Añadir idioma
+          </Button>
+        </div>
+      </div>
+
+      {localeConfig.locales.length === 0 ? null : (
+        <>
+          <p className="text-xs text-muted-foreground">
+            Editando: <strong>{selectedLocaleLabel}</strong>
+          </p>
 
       <div className="flex flex-wrap gap-1">
         {SECTIONS.map((section) => (
@@ -233,13 +401,13 @@ export function TranslationEditor() {
           <TranslationField
             label="Texto de carga"
             spanishValue={content.loader.loadingText}
-            englishValue={englishAt("loader.loadingText")}
+            englishValue={translatedAt("loader.loadingText")}
             onSave={(value) => saveField("loader.loadingText", value)}
           />
           <TranslationField
             label="Mensaje WhatsApp predeterminado"
             spanishValue={content.whatsapp.defaultMessage}
-            englishValue={englishAt("whatsapp.defaultMessage")}
+            englishValue={translatedAt("whatsapp.defaultMessage")}
             multiline
             onSave={(value) => saveField("whatsapp.defaultMessage", value)}
           />
@@ -261,7 +429,7 @@ export function TranslationEditor() {
               key={path}
               label={label}
               spanishValue={String(getByPath(content, path) ?? "")}
-              englishValue={englishAt(path)}
+              englishValue={translatedAt(path)}
               multiline={multiline}
               onSave={(value) => saveField(path, value)}
             />
@@ -274,19 +442,19 @@ export function TranslationEditor() {
           <TranslationField
             label="Dirección"
             spanishValue={content.navbar.address}
-            englishValue={englishAt("navbar.address")}
+            englishValue={translatedAt("navbar.address")}
             onSave={(value) => saveField("navbar.address", value)}
           />
           <TranslationField
             label="Horario"
             spanishValue={content.navbar.hours}
-            englishValue={englishAt("navbar.hours")}
+            englishValue={translatedAt("navbar.hours")}
             onSave={(value) => saveField("navbar.hours", value)}
           />
           <TranslationField
             label="Botón reservar"
             spanishValue={content.navbar.reserveLabel}
-            englishValue={englishAt("navbar.reserveLabel")}
+            englishValue={translatedAt("navbar.reserveLabel")}
             onSave={(value) => saveField("navbar.reserveLabel", value)}
           />
           {content.navbar.navLinks.map((link, index) => (
@@ -294,7 +462,7 @@ export function TranslationEditor() {
               key={link.href}
               label={`Enlace: ${link.label}`}
               spanishValue={link.label}
-              englishValue={englishAt(`navbar.navLinks.${index}.label`)}
+              englishValue={translatedAt(`navbar.navLinks.${index}.label`)}
               onSave={(value) =>
                 saveField(`navbar.navLinks.${index}.label`, value)
               }
@@ -317,7 +485,7 @@ export function TranslationEditor() {
               key={path}
               label={label}
               spanishValue={String(getByPath(content, path) ?? "")}
-              englishValue={englishAt(path)}
+              englishValue={translatedAt(path)}
               onSave={(value) => saveField(path, value)}
             />
           ))}
@@ -329,19 +497,19 @@ export function TranslationEditor() {
           <TranslationField
             label="Eyebrow"
             spanishValue={content.services.eyebrow}
-            englishValue={englishAt("services.eyebrow")}
+            englishValue={translatedAt("services.eyebrow")}
             onSave={(value) => saveField("services.eyebrow", value)}
           />
           <TranslationField
             label="Título"
             spanishValue={content.services.title}
-            englishValue={englishAt("services.title")}
+            englishValue={translatedAt("services.title")}
             onSave={(value) => saveField("services.title", value)}
           />
           <TranslationField
             label="Subtítulo"
             spanishValue={content.services.subtitle}
-            englishValue={englishAt("services.subtitle")}
+            englishValue={translatedAt("services.subtitle")}
             multiline
             onSave={(value) => saveField("services.subtitle", value)}
           />
@@ -351,7 +519,7 @@ export function TranslationEditor() {
               <TranslationField
                 label="Título"
                 spanishValue={item.title}
-                englishValue={englishAt(`services.items.${index}.title`)}
+                englishValue={translatedAt(`services.items.${index}.title`)}
                 onSave={(value) =>
                   saveField(`services.items.${index}.title`, value)
                 }
@@ -359,7 +527,7 @@ export function TranslationEditor() {
               <TranslationField
                 label="Precio"
                 spanishValue={item.priceLabel}
-                englishValue={englishAt(`services.items.${index}.priceLabel`)}
+                englishValue={translatedAt(`services.items.${index}.priceLabel`)}
                 onSave={(value) =>
                   saveField(`services.items.${index}.priceLabel`, value)
                 }
@@ -367,7 +535,7 @@ export function TranslationEditor() {
               <TranslationField
                 label="Detalle de precio"
                 spanishValue={item.priceDetail}
-                englishValue={englishAt(`services.items.${index}.priceDetail`)}
+                englishValue={translatedAt(`services.items.${index}.priceDetail`)}
                 onSave={(value) =>
                   saveField(`services.items.${index}.priceDetail`, value)
                 }
@@ -375,7 +543,7 @@ export function TranslationEditor() {
               <TranslationField
                 label="Descripción"
                 spanishValue={item.description}
-                englishValue={englishAt(`services.items.${index}.description`)}
+                englishValue={translatedAt(`services.items.${index}.description`)}
                 multiline
                 onSave={(value) =>
                   saveField(`services.items.${index}.description`, value)
@@ -402,19 +570,19 @@ export function TranslationEditor() {
           <TranslationField
             label="Eyebrow"
             spanishValue={content.experiences.eyebrow}
-            englishValue={englishAt("experiences.eyebrow")}
+            englishValue={translatedAt("experiences.eyebrow")}
             onSave={(value) => saveField("experiences.eyebrow", value)}
           />
           <TranslationField
             label="Título"
             spanishValue={content.experiences.title}
-            englishValue={englishAt("experiences.title")}
+            englishValue={translatedAt("experiences.title")}
             onSave={(value) => saveField("experiences.title", value)}
           />
           <TranslationField
             label="Subtítulo"
             spanishValue={content.experiences.subtitle}
-            englishValue={englishAt("experiences.subtitle")}
+            englishValue={translatedAt("experiences.subtitle")}
             multiline
             onSave={(value) => saveField("experiences.subtitle", value)}
           />
@@ -424,7 +592,7 @@ export function TranslationEditor() {
               <TranslationField
                 label="Título"
                 spanishValue={item.title}
-                englishValue={englishAt(`experiences.items.${index}.title`)}
+                englishValue={translatedAt(`experiences.items.${index}.title`)}
                 onSave={(value) =>
                   saveField(`experiences.items.${index}.title`, value)
                 }
@@ -432,7 +600,7 @@ export function TranslationEditor() {
               <TranslationField
                 label="Descripción"
                 spanishValue={item.description}
-                englishValue={englishAt(
+                englishValue={translatedAt(
                   `experiences.items.${index}.description`,
                 )}
                 multiline
@@ -460,7 +628,7 @@ export function TranslationEditor() {
               key={path}
               label={label}
               spanishValue={String(getByPath(content, path) ?? "")}
-              englishValue={englishAt(path)}
+              englishValue={translatedAt(path)}
               multiline={multiline}
               onSave={(value) => saveField(path, value)}
             />
@@ -473,19 +641,19 @@ export function TranslationEditor() {
           <TranslationField
             label="Eyebrow"
             spanishValue={content.testimonials.eyebrow}
-            englishValue={englishAt("testimonials.eyebrow")}
+            englishValue={translatedAt("testimonials.eyebrow")}
             onSave={(value) => saveField("testimonials.eyebrow", value)}
           />
           <TranslationField
             label="Título"
             spanishValue={content.testimonials.title}
-            englishValue={englishAt("testimonials.title")}
+            englishValue={translatedAt("testimonials.title")}
             onSave={(value) => saveField("testimonials.title", value)}
           />
           <TranslationField
             label="Ver todas las reseñas"
             spanishValue={content.testimonials.viewAllLabel}
-            englishValue={englishAt("testimonials.viewAllLabel")}
+            englishValue={translatedAt("testimonials.viewAllLabel")}
             onSave={(value) => saveField("testimonials.viewAllLabel", value)}
           />
         </div>
@@ -496,13 +664,13 @@ export function TranslationEditor() {
           <TranslationField
             label="Eyebrow"
             spanishValue={content.faq.eyebrow}
-            englishValue={englishAt("faq.eyebrow")}
+            englishValue={translatedAt("faq.eyebrow")}
             onSave={(value) => saveField("faq.eyebrow", value)}
           />
           <TranslationField
             label="Título"
             spanishValue={content.faq.title}
-            englishValue={englishAt("faq.title")}
+            englishValue={translatedAt("faq.title")}
             onSave={(value) => saveField("faq.title", value)}
           />
           {content.faq.items.map((item, index) => (
@@ -510,7 +678,7 @@ export function TranslationEditor() {
               <TranslationField
                 label={`Pregunta: ${item.question}`}
                 spanishValue={item.question}
-                englishValue={englishAt(`faq.items.${index}.question`)}
+                englishValue={translatedAt(`faq.items.${index}.question`)}
                 onSave={(value) =>
                   saveField(`faq.items.${index}.question`, value)
                 }
@@ -518,7 +686,7 @@ export function TranslationEditor() {
               <TranslationField
                 label="Respuesta"
                 spanishValue={item.answer}
-                englishValue={englishAt(`faq.items.${index}.answer`)}
+                englishValue={translatedAt(`faq.items.${index}.answer`)}
                 multiline
                 onSave={(value) =>
                   saveField(`faq.items.${index}.answer`, value)
@@ -534,26 +702,26 @@ export function TranslationEditor() {
           <TranslationField
             label="Eyebrow"
             spanishValue={content.contact.eyebrow}
-            englishValue={englishAt("contact.eyebrow")}
+            englishValue={translatedAt("contact.eyebrow")}
             onSave={(value) => saveField("contact.eyebrow", value)}
           />
           <TranslationField
             label="Título"
             spanishValue={content.contact.title}
-            englishValue={englishAt("contact.title")}
+            englishValue={translatedAt("contact.title")}
             onSave={(value) => saveField("contact.title", value)}
           />
           <TranslationField
             label="Subtítulo"
             spanishValue={content.contact.subtitle}
-            englishValue={englishAt("contact.subtitle")}
+            englishValue={translatedAt("contact.subtitle")}
             multiline
             onSave={(value) => saveField("contact.subtitle", value)}
           />
           <TranslationField
             label="Etiqueta redes"
             spanishValue={content.contact.socialLabel}
-            englishValue={englishAt("contact.socialLabel")}
+            englishValue={translatedAt("contact.socialLabel")}
             onSave={(value) => saveField("contact.socialLabel", value)}
           />
           {content.contact.contactInfo.map((info, index) => (
@@ -561,7 +729,7 @@ export function TranslationEditor() {
               key={info.id}
               label={`${info.label} (etiqueta)`}
               spanishValue={info.label}
-              englishValue={englishAt(`contact.contactInfo.${index}.label`)}
+              englishValue={translatedAt(`contact.contactInfo.${index}.label`)}
               onSave={(value) =>
                 saveField(`contact.contactInfo.${index}.label`, value)
               }
@@ -575,20 +743,20 @@ export function TranslationEditor() {
           <TranslationField
             label="Descripción"
             spanishValue={content.footer.description}
-            englishValue={englishAt("footer.description")}
+            englishValue={translatedAt("footer.description")}
             multiline
             onSave={(value) => saveField("footer.description", value)}
           />
           <TranslationField
             label="Título enlaces"
             spanishValue={content.footer.linksTitle}
-            englishValue={englishAt("footer.linksTitle")}
+            englishValue={translatedAt("footer.linksTitle")}
             onSave={(value) => saveField("footer.linksTitle", value)}
           />
           <TranslationField
             label="Título contacto"
             spanishValue={content.footer.contactTitle}
-            englishValue={englishAt("footer.contactTitle")}
+            englishValue={translatedAt("footer.contactTitle")}
             onSave={(value) => saveField("footer.contactTitle", value)}
           />
           {content.footer.navLinks.map((link, index) => (
@@ -596,7 +764,7 @@ export function TranslationEditor() {
               key={link.href}
               label={`Enlace: ${link.label}`}
               spanishValue={link.label}
-              englishValue={englishAt(`footer.navLinks.${index}.label`)}
+              englishValue={translatedAt(`footer.navLinks.${index}.label`)}
               onSave={(value) =>
                 saveField(`footer.navLinks.${index}.label`, value)
               }
@@ -624,19 +792,19 @@ export function TranslationEditor() {
                 <TranslationField
                   label="Título"
                   spanishValue={doc.title}
-                  englishValue={englishAt(`${path}.title`)}
+                  englishValue={translatedAt(`${path}.title`)}
                   onSave={(value) => saveField(`${path}.title`, value)}
                 />
                 <TranslationField
                   label="Última actualización"
                   spanishValue={doc.lastUpdated}
-                  englishValue={englishAt(`${path}.lastUpdated`)}
+                  englishValue={translatedAt(`${path}.lastUpdated`)}
                   onSave={(value) => saveField(`${path}.lastUpdated`, value)}
                 />
                 <TranslationField
                   label="Contenido HTML"
                   spanishValue={doc.content.slice(0, 120) + "..."}
-                  englishValue={englishAt(`${path}.content`)}
+                  englishValue={translatedAt(`${path}.content`)}
                   multiline={8}
                   onSave={(value) => saveField(`${path}.content`, value)}
                 />
@@ -644,6 +812,8 @@ export function TranslationEditor() {
             )
           })}
         </div>
+      )}
+        </>
       )}
     </div>
   )

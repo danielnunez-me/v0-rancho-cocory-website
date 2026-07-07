@@ -16,6 +16,11 @@ export {
   updatePageContent,
 } from "./content"
 export {
+  getLocaleConfig,
+  getEnabledTranslationLocales,
+  isTranslationLocaleEnabled,
+  addTranslationLocale,
+  removeTranslationLocale,
   getLocaleTranslations,
   getLocalizedPageContent,
   updateLocaleTranslation,

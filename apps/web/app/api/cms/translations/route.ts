@@ -3,11 +3,12 @@ import { cookies } from "next/headers"
 import { z } from "zod"
 import {
   DEFAULT_LOCALE,
-  isSupportedLocale,
+  isValidLocaleCode,
   LOCALE_PARAM,
 } from "@rancho-cocory/shared"
 import {
   getLocaleTranslations,
+  isTranslationLocaleEnabled,
   SESSION_COOKIE,
   updateLocaleTranslation,
   validateSession,
@@ -21,6 +22,16 @@ const translationPatchSchema = z.object({
   value: z.unknown(),
 })
 
+async function resolveTranslationLocale(
+  langParam: string | null,
+): Promise<string | null> {
+  if (!langParam || !isValidLocaleCode(langParam) || langParam === DEFAULT_LOCALE) {
+    return null
+  }
+  const enabled = await isTranslationLocaleEnabled(langParam)
+  return enabled ? langParam : null
+}
+
 export async function GET(request: Request) {
   const cookieStore = await cookies()
   const token = cookieStore.get(SESSION_COOKIE)?.value
@@ -32,13 +43,13 @@ export async function GET(request: Request) {
 
   try {
     const url = new URL(request.url)
-    const langParam = url.searchParams.get(LOCALE_PARAM)
-    const locale =
-      langParam && isSupportedLocale(langParam) ? langParam : DEFAULT_LOCALE
+    const locale = await resolveTranslationLocale(
+      url.searchParams.get(LOCALE_PARAM),
+    )
 
-    if (locale === "es") {
+    if (!locale) {
       return NextResponse.json(
-        { error: "Spanish content is edited via /api/cms/content" },
+        { error: "Invalid or disabled translation locale" },
         { status: 400 },
       )
     }
@@ -70,14 +81,10 @@ export async function PATCH(request: Request) {
     )
   }
 
-  const locale =
-    parsed.data.lang && isSupportedLocale(parsed.data.lang)
-      ? parsed.data.lang
-      : "en"
-
-  if (locale === "es") {
+  const locale = await resolveTranslationLocale(parsed.data.lang ?? null)
+  if (!locale) {
     return NextResponse.json(
-      { error: "Spanish content is edited via /api/cms/content" },
+      { error: "Invalid or disabled translation locale" },
       { status: 400 },
     )
   }

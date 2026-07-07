@@ -1,25 +1,26 @@
-import type { PageContent } from "../page-content"
-import type { SupportedLocale } from "./config"
+import type { LocaleStrings } from "./locale-strings"
+
+const staticLocaleLoaders: Record<
+  string,
+  () => Promise<{ defaultStrings: LocaleStrings }>
+> = {
+  en: () =>
+    import("../locales/en.strings").then((m) => ({
+      defaultStrings: m.enDefaultStrings,
+    })),
+}
 
 /**
- * Loads static locale content for non-Spanish locales.
- * Spanish content is loaded from Firestore by the caller.
+ * Loads static default text strings for a translation locale.
+ * Spanish content always comes from Firestore.
  */
-export async function getLocaleContent(
-  locale: SupportedLocale,
-): Promise<PageContent> {
-  switch (locale) {
-    case "en": {
-      const { enPageContent } = await import("../locales/en")
-      return enPageContent
-    }
-    case "es":
-      throw new Error(
-        "Spanish content must be loaded from Firestore, not getLocaleContent",
-      )
-    default: {
-      const _exhaustive: never = locale
-      throw new Error(`Unsupported locale: ${_exhaustive}`)
-    }
+export async function getDefaultLocaleStrings(
+  locale: string,
+): Promise<LocaleStrings> {
+  const loader = staticLocaleLoaders[locale]
+  if (loader) {
+    const { defaultStrings } = await loader()
+    return defaultStrings
   }
+  return {}
 }

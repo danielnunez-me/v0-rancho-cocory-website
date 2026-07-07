@@ -1,5 +1,3 @@
-import type { SupportedLocale } from "./config"
-
 export interface UiStrings {
   toastLoadError: string
   toastSaveSuccess: string
@@ -8,7 +6,7 @@ export interface UiStrings {
   menuClose: string
 }
 
-const uiStrings: Record<SupportedLocale, UiStrings> = {
+const uiStrings = {
   es: {
     toastLoadError: "No se pudo cargar el contenido",
     toastSaveSuccess: "Contenido guardado",
@@ -23,8 +21,11 @@ const uiStrings: Record<SupportedLocale, UiStrings> = {
     menuOpen: "Open menu",
     menuClose: "Close menu",
   },
-}
+} satisfies Record<string, UiStrings>
 
-export function getUiStrings(locale: SupportedLocale): UiStrings {
-  return uiStrings[locale]
+export function getUiStrings(locale: string): UiStrings {
+  if (locale in uiStrings) {
+    return uiStrings[locale as keyof typeof uiStrings]
+  }
+  return uiStrings.en
 }

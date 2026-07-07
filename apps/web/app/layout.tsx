@@ -10,9 +10,9 @@ import { getPageContent } from "@/lib/cms-client"
 import {
   buildPageMetadata,
   defaultPageContent,
-  isSupportedLocale,
+  isDefaultLocale,
+  isValidLocaleCode,
   LOCALE_HEADER,
-  type SupportedLocale,
 } from "@rancho-cocory/shared"
 import "./globals.css"
 
@@ -28,16 +28,16 @@ const playfair = Playfair_Display({
   variable: "--font-playfair",
 })
 
-async function getResolvedLocale(): Promise<SupportedLocale> {
+async function getResolvedLocale(): Promise<string> {
   const headerStore = await headers()
   const localeHeader = headerStore.get(LOCALE_HEADER)
-  if (localeHeader && isSupportedLocale(localeHeader)) {
-    return localeHeader
-  }
+  if (!localeHeader) return "es"
+  if (isDefaultLocale(localeHeader)) return "es"
+  if (isValidLocaleCode(localeHeader)) return localeHeader
   return "es"
 }
 
-async function loadContentForLocale(locale: SupportedLocale) {
+async function loadContentForLocale(locale: string) {
   return getPageContent(locale)
 }
 

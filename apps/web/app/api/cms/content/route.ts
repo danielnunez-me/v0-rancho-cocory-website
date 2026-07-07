@@ -3,7 +3,7 @@ import { cookies } from "next/headers"
 import {
   contentPatchSchema,
   DEFAULT_LOCALE,
-  isSupportedLocale,
+  isValidLocaleCode,
   LOCALE_PARAM,
 } from "@rancho-cocory/shared"
 import {
@@ -21,17 +21,20 @@ export async function GET(request: Request) {
     const url = new URL(request.url)
     const langParam = url.searchParams.get(LOCALE_PARAM)
     const hasEditKey = url.searchParams.has("edit_key")
+
+    if (hasEditKey) {
+      const content = await getPageContent()
+      return NextResponse.json(content, {
+        headers: { "Cache-Control": "no-store, no-cache, must-revalidate" },
+      })
+    }
+
     const locale =
-      langParam && isSupportedLocale(langParam) ? langParam : DEFAULT_LOCALE
+      langParam && isValidLocaleCode(langParam) ? langParam : DEFAULT_LOCALE
 
-    const content = hasEditKey
-      ? await getPageContent()
-      : await getLocalizedPageContent(locale)
-
+    const content = await getLocalizedPageContent(locale)
     return NextResponse.json(content, {
-      headers: {
-        "Cache-Control": "no-store, no-cache, must-revalidate",
-      },
+      headers: { "Cache-Control": "no-store, no-cache, must-revalidate" },
     })
   } catch (error) {
     console.error("Failed to load page content:", error)
@@ -61,9 +64,7 @@ export async function PATCH(request: Request) {
   try {
     const content = await updatePageContent(parsed.data.path, parsed.data.value)
     return NextResponse.json(content, {
-      headers: {
-        "Cache-Control": "no-store, no-cache, must-revalidate",
-      },
+      headers: { "Cache-Control": "no-store, no-cache, must-revalidate" },
     })
   } catch (error) {
     console.error("Failed to update page content:", error)
