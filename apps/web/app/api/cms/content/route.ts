@@ -3,11 +3,11 @@ import { cookies } from "next/headers"
 import {
   contentPatchSchema,
   DEFAULT_LOCALE,
-  getLocaleContent,
   isSupportedLocale,
   LOCALE_PARAM,
 } from "@rancho-cocory/shared"
 import {
+  getLocalizedPageContent,
   getPageContent,
   SESSION_COOKIE,
   updatePageContent,
@@ -20,11 +20,13 @@ export async function GET(request: Request) {
   try {
     const url = new URL(request.url)
     const langParam = url.searchParams.get(LOCALE_PARAM)
+    const hasEditKey = url.searchParams.has("edit_key")
     const locale =
       langParam && isSupportedLocale(langParam) ? langParam : DEFAULT_LOCALE
 
-    const content =
-      locale === "es" ? await getPageContent() : await getLocaleContent(locale)
+    const content = hasEditKey
+      ? await getPageContent()
+      : await getLocalizedPageContent(locale)
 
     return NextResponse.json(content, {
       headers: {

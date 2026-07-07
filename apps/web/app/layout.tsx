@@ -9,9 +9,7 @@ import { ContentProvider } from "@/components/content-provider"
 import { getPageContent } from "@/lib/cms-client"
 import {
   buildPageMetadata,
-  DEFAULT_LOCALE,
   defaultPageContent,
-  getLocaleContent,
   isSupportedLocale,
   LOCALE_HEADER,
   type SupportedLocale,
@@ -36,18 +34,18 @@ async function getResolvedLocale(): Promise<SupportedLocale> {
   if (localeHeader && isSupportedLocale(localeHeader)) {
     return localeHeader
   }
-  return DEFAULT_LOCALE
+  return "es"
+}
+
+async function loadContentForLocale(locale: SupportedLocale) {
+  return getPageContent(locale)
 }
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getResolvedLocale()
 
   try {
-    const content =
-      locale === "es"
-        ? await getPageContent(locale)
-        : await getLocaleContent(locale)
-
+    const content = await loadContentForLocale(locale)
     return buildPageMetadata(locale, content.seo, content.branding)
   } catch {
     return buildPageMetadata(
@@ -62,11 +60,7 @@ export async function generateViewport(): Promise<Viewport> {
   const locale = await getResolvedLocale()
 
   try {
-    const content =
-      locale === "es"
-        ? await getPageContent(locale)
-        : await getLocaleContent(locale)
-
+    const content = await loadContentForLocale(locale)
     return {
       themeColor: content.seo.themeColor,
       width: "device-width",
@@ -90,10 +84,7 @@ export default async function RootLayout({
 
   let initialContent
   try {
-    initialContent =
-      locale === "es"
-        ? await getPageContent(locale)
-        : await getLocaleContent(locale)
+    initialContent = await loadContentForLocale(locale)
   } catch {
     initialContent = undefined
   }

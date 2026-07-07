@@ -15,6 +15,11 @@ export {
   seedPageContent,
   updatePageContent,
 } from "./content"
+export {
+  getLocaleTranslations,
+  getLocalizedPageContent,
+  updateLocaleTranslation,
+} from "./translations"
 export { fetchGoogleReviews } from "./google-reviews"
 export { fetchInstagramFeed } from "./instagram"
 export {

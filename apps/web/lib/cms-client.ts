@@ -4,7 +4,7 @@ import type {
   PageContent,
   SupportedLocale,
 } from "@rancho-cocory/shared"
-import { DEFAULT_LOCALE, getLocaleContent, LOCALE_PARAM } from "@rancho-cocory/shared"
+import { DEFAULT_LOCALE, LOCALE_PARAM } from "@rancho-cocory/shared"
 
 const CMS_BASE = "/api/cms"
 
@@ -31,26 +31,51 @@ async function cmsFetch<T>(
 
 export async function getPageContent(
   locale: SupportedLocale = DEFAULT_LOCALE,
+  options?: { editKey?: string },
 ): Promise<PageContent> {
   if (typeof window === "undefined") {
     const { unstable_noStore } = await import("next/cache")
     unstable_noStore()
 
-    if (locale !== "es") {
-      return getLocaleContent(locale)
+    if (options?.editKey || locale === "es") {
+      const { getPageContent: loadContent } = await import(
+        "@rancho-cocory/cms-server"
+      )
+      return loadContent()
     }
 
-    const { getPageContent: loadContent } = await import(
-      "@rancho-cocory/cms-server"
-    )
-    return loadContent()
+    const { getLocalizedPageContent } = await import("@rancho-cocory/cms-server")
+    return getLocalizedPageContent(locale)
   }
 
-  const langQuery =
-    locale !== DEFAULT_LOCALE
-      ? `${LOCALE_PARAM}=${encodeURIComponent(locale)}&`
-      : ""
-  return cmsFetch<PageContent>(`/content?${langQuery}_=${Date.now()}`)
+  const params = new URLSearchParams({ _: String(Date.now()) })
+  if (locale !== DEFAULT_LOCALE) {
+    params.set(LOCALE_PARAM, locale)
+  }
+  if (options?.editKey) {
+    params.set("edit_key", options.editKey)
+  }
+
+  return cmsFetch<PageContent>(`/content?${params.toString()}`)
+}
+
+export async function getLocaleTranslations(
+  locale: SupportedLocale = "en",
+): Promise<Partial<PageContent>> {
+  return cmsFetch<Partial<PageContent>>(
+    `/translations?${LOCALE_PARAM}=${encodeURIComponent(locale)}`,
+  )
+}
+
+export async function updateLocaleTranslation(
+  path: string,
+  value: unknown,
+  locale: SupportedLocale = "en",
+): Promise<Partial<PageContent>> {
+  return cmsFetch<Partial<PageContent>>("/translations", {
+    method: "PATCH",
+    body: JSON.stringify({ lang: locale, path, value }),
+  })
 }
 
 export async function updatePageContent(

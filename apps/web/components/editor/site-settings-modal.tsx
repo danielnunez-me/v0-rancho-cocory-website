@@ -24,6 +24,7 @@ import { cn } from "@/lib/utils"
 import { useContent } from "@/components/content-provider"
 import { useEditorMode } from "@/components/editor/editor-mode"
 import { ImagePicker } from "@/components/editor/image-picker"
+import { TranslationEditor } from "@/components/editor/translation-editor"
 import { Plus, Trash2 } from "lucide-react"
 
 const TABS = [
@@ -34,6 +35,7 @@ const TABS = [
   { id: "social", label: "Redes" },
   { id: "map", label: "Mapa" },
   { id: "legal", label: "Legal" },
+  { id: "translations", label: "Traducciones" },
 ] as const
 
 type TabId = (typeof TABS)[number]["id"]
@@ -333,6 +335,8 @@ export function SiteSettingsFab() {
                   />
                 </>
               )}
+
+              {activeTab === "translations" && <TranslationEditor />}
             </div>
           </div>
         </DialogContent>
