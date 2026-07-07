@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react"
 import { Settings } from "lucide-react"
-import { buildWhatsAppUrl } from "@rancho-cocory/shared"
 import type { SocialLink } from "@rancho-cocory/shared"
 import { Button } from "@/components/ui/button"
 import {
@@ -32,7 +31,6 @@ const TABS = [
   { id: "brand", label: "Marca" },
   { id: "loader", label: "Carga" },
   { id: "seo", label: "SEO" },
-  { id: "whatsapp", label: "WhatsApp" },
   { id: "social", label: "Redes" },
   { id: "map", label: "Mapa" },
   { id: "legal", label: "Legal" },
@@ -62,23 +60,7 @@ export function SiteSettingsFab() {
     }
   }, [])
 
-  const [waPhone, setWaPhone] = useState(content.whatsapp.phone)
-  const [waMessage, setWaMessage] = useState(content.whatsapp.defaultMessage)
-
-  useEffect(() => {
-    if (open) {
-      setWaPhone(content.whatsapp.phone)
-      setWaMessage(content.whatsapp.defaultMessage)
-    }
-  }, [open, content.whatsapp])
-
   if (!isEditorMode) return null
-
-  async function saveWhatsApp() {
-    const href = buildWhatsAppUrl(waPhone, waMessage)
-    await updateField("whatsapp", { phone: waPhone, defaultMessage: waMessage })
-    await updateField("navbar.whatsappHref", href)
-  }
 
   async function updateSocialLinks(links: SocialLink[]) {
     await updateField("contact.socialLinks", links)
@@ -287,37 +269,6 @@ export function SiteSettingsFab() {
                       }
                     />
                   </div>
-                </>
-              )}
-
-              {activeTab === "whatsapp" && (
-                <>
-                  <p className="text-sm text-muted-foreground">
-                    Sincroniza el mensaje con todos los botones de WhatsApp
-                    (wa.me)
-                  </p>
-                  <div className="space-y-2">
-                    <Label>Teléfono (solo dígitos)</Label>
-                    <Input
-                      value={waPhone}
-                      onChange={(e) => setWaPhone(e.target.value)}
-                      placeholder="18299621367"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Mensaje predeterminado</Label>
-                    <Textarea
-                      value={waMessage}
-                      onChange={(e) => setWaMessage(e.target.value)}
-                      rows={4}
-                    />
-                  </div>
-                  <Button onClick={() => void saveWhatsApp()}>
-                    Guardar WhatsApp
-                  </Button>
-                  <p className="text-xs text-muted-foreground break-all">
-                    Vista previa: {buildWhatsAppUrl(waPhone, waMessage)}
-                  </p>
                 </>
               )}
 

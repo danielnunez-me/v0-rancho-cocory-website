@@ -39,7 +39,9 @@ export const heroSchema = z.object({
   tagline: z.string(),
   location: z.string(),
   ctaPrimary: z.string(),
+  ctaPrimaryHref: z.string(),
   ctaSecondary: z.string(),
+  ctaSecondaryHref: z.string(),
   backgroundImage: z.string(),
   style: sectionStyleSchema.optional(),
 })
@@ -52,6 +54,7 @@ export const serviceSchema = z.object({
   priceDetail: z.string(),
   description: z.string(),
   includes: z.array(z.string()),
+  whatsappMessage: z.string().optional(),
 })
 
 export const servicesSectionSchema = z.object({

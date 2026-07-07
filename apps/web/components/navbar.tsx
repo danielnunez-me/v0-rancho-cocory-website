@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { EditableText } from "@/components/editor/editor-mode"
 import { EditableLink } from "@/components/editor/editable-link"
+import { EditableCta } from "@/components/editor/editable-cta"
 import { useContent } from "@/components/content-provider"
 
 function WhatsAppIcon({ className }: { className?: string }) {
@@ -19,7 +20,7 @@ function WhatsAppIcon({ className }: { className?: string }) {
 
 export function Navbar() {
   const { content } = useContent()
-  const { navbar, branding } = content
+  const { navbar, branding, whatsapp } = content
   const [isOpen, setIsOpen] = useState(false)
 
   return (
@@ -81,21 +82,32 @@ export function Navbar() {
         </div>
 
         <div className="hidden md:flex items-center gap-3">
-          <Button className="rounded-full font-bold h-9 px-4 lg:h-11 lg:px-6" asChild>
-            <a href={navbar.whatsappHref} target="_blank" rel="noopener noreferrer">
-              <WhatsAppIcon className="size-4" />
-              <EditableText path="navbar.reserveLabel" value={navbar.reserveLabel} />
-            </a>
-          </Button>
+          <EditableCta
+            mode="whatsapp"
+            label={navbar.reserveLabel}
+            labelPath="navbar.reserveLabel"
+            phone={whatsapp.phone}
+            message={whatsapp.defaultMessage}
+            href={navbar.whatsappHref}
+            buttonClassName="rounded-full font-bold h-9 px-4 lg:h-11 lg:px-6"
+          >
+            <WhatsAppIcon className="size-4" />
+          </EditableCta>
         </div>
 
         <div className="flex md:hidden items-center gap-2">
-          <Button size="sm" className="rounded-full font-bold h-9 px-3 text-xs" asChild>
-            <a href={navbar.whatsappHref} target="_blank" rel="noopener noreferrer">
-              <WhatsAppIcon className="size-4" />
-              <EditableText path="navbar.reserveLabel" value={navbar.reserveLabel} />
-            </a>
-          </Button>
+          <EditableCta
+            mode="whatsapp"
+            label={navbar.reserveLabel}
+            labelPath="navbar.reserveLabel"
+            phone={whatsapp.phone}
+            message={whatsapp.defaultMessage}
+            href={navbar.whatsappHref}
+            buttonSize="sm"
+            buttonClassName="rounded-full font-bold h-9 px-3 text-xs"
+          >
+            <WhatsAppIcon className="size-4" />
+          </EditableCta>
           <Button
             variant="ghost"
             size="icon"

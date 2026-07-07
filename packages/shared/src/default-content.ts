@@ -111,7 +111,9 @@ export const defaultPageContent: PageContent = {
     tagline: "Diversión familiar en Higüey",
     location: "Autopista del Coral, Higüey, República Dominicana",
     ctaPrimary: "Explorar actividades",
+    ctaPrimaryHref: "#actividades",
     ctaSecondary: "Reservar ahora",
+    ctaSecondaryHref: "#contacto",
     backgroundImage: "/images/hero-bg.jpg",
     style: {},
   },
@@ -139,6 +141,7 @@ export const defaultPageContent: PageContent = {
           "Canchas deportivas",
           "Zonas comunes",
         ],
+        whatsappMessage: `${WHATSAPP_MESSAGE} — Actividad: Pasadia - Entrada General`,
       },
       {
         id: "service-2",
@@ -155,6 +158,7 @@ export const defaultPageContent: PageContent = {
           "Instructor dedicado",
           "Area de descanso",
         ],
+        whatsappMessage: `${WHATSAPP_MESSAGE} — Actividad: Paintball`,
       },
       {
         id: "service-3",
@@ -171,6 +175,7 @@ export const defaultPageContent: PageContent = {
           "Recorrido por caminos naturales",
           "Paradas fotograficas",
         ],
+        whatsappMessage: `${WHATSAPP_MESSAGE} — Actividad: Excursion en Buggy`,
       },
       {
         id: "service-4",
@@ -187,6 +192,7 @@ export const defaultPageContent: PageContent = {
           "Equipo de seguridad",
           "Experiencia para todos los niveles",
         ],
+        whatsappMessage: `${WHATSAPP_MESSAGE} — Actividad: Excursion a Caballo`,
       },
     ],
   },

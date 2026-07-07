@@ -92,7 +92,9 @@ function ServiceCard({
     }
   }, [forceOpen, onForceOpenHandled])
 
-  const whatsappMessage = `${content.whatsapp.defaultMessage} — Actividad: ${service.title}`
+  const whatsappMessage =
+    service.whatsappMessage?.trim() ||
+    `${content.whatsapp.defaultMessage} — Actividad: ${service.title}`
   const whatsappUrl = buildWhatsAppUrl(
     content.whatsapp.phone,
     whatsappMessage,
@@ -106,6 +108,7 @@ function ServiceCard({
       priceLabel: values.priceLabel,
       priceDetail: values.priceDetail,
       description: values.description,
+      whatsappMessage: values.whatsappMessage,
       includes: values.includes
         .split("\n")
         .map((line) => line.trim())
@@ -203,6 +206,14 @@ function ServiceCard({
             value: service.includes.join("\n"),
             multiline: true,
           },
+          {
+            key: "whatsappMessage",
+            label: "Mensaje de WhatsApp (wa.me)",
+            value:
+              service.whatsappMessage ??
+              `${content.whatsapp.defaultMessage} — Actividad: ${service.title}`,
+            multiline: true,
+          },
         ]}
         onSave={handleSave}
       />
@@ -287,13 +298,17 @@ export function ServiceCards() {
   }, [searchParams, services.items])
 
   async function handleAdd(values: Record<string, string>) {
+    const title = values.title || "Nueva actividad"
     const newItem: Service = {
       id: `service-${Date.now()}`,
-      title: values.title || "Nueva actividad",
+      title,
       image: values.image || "/images/pool.jpg",
       priceLabel: values.priceLabel || "Desde RD$0",
       priceDetail: values.priceDetail || "",
       description: values.description || "",
+      whatsappMessage:
+        values.whatsappMessage ||
+        `${content.whatsapp.defaultMessage} — Actividad: ${title}`,
       includes: values.includes
         .split("\n")
         .map((line) => line.trim())
@@ -338,16 +353,17 @@ export function ServiceCards() {
           />
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid gap-6 justify-center [grid-template-columns:repeat(auto-fit,minmax(260px,1fr))] max-w-5xl mx-auto">
           {services.items.map((service, index) => (
+            <div key={service.id} className="w-full max-w-xs mx-auto">
             <ServiceCard
-              key={service.id}
               service={service}
               index={index}
               onDelete={() => void handleDelete(index)}
               forceOpen={deepLinkId === service.id}
               onForceOpenHandled={() => setDeepLinkId(null)}
             />
+            </div>
           ))}
         </div>
       </div>
@@ -371,6 +387,12 @@ export function ServiceCards() {
             key: "includes",
             label: "Incluye (una por línea)",
             value: "",
+            multiline: true,
+          },
+          {
+            key: "whatsappMessage",
+            label: "Mensaje de WhatsApp (wa.me)",
+            value: `${content.whatsapp.defaultMessage} — Actividad: `,
             multiline: true,
           },
         ]}
